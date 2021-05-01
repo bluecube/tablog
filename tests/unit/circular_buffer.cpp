@@ -21,6 +21,8 @@ TEST_CASE("CircularBuffer") {
             {
                 REQUIRE(c[i] == i);
             }
+            REQUIRE(c.front() == 0);
+            REQUIRE(c.back() == n - 1);
         }
 
         SECTION("pop") {
@@ -46,7 +48,7 @@ TEST_CASE("CircularBuffer") {
         }
 
         SECTION("combined") {
-            int max = 100;
+            int max = 11;
             for (int i = 0; i < max; ++i)
             {
                 c.pop_front();
@@ -58,5 +60,11 @@ TEST_CASE("CircularBuffer") {
                 REQUIRE(c.size() == n);
             }
         }
+    }
+
+    SECTION("single element front and back are the same") {
+        c.push_back(42);
+        REQUIRE(c.front() == 42);
+        REQUIRE(c.back() == 42);
     }
 }

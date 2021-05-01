@@ -6,6 +6,8 @@
 namespace tablog::util {
 
 /// Fixed size circular buffer.
+/// Never allocates, never throws.
+/// Indexing type may be replaced for MCU compatibility.
 template <typename T, std::size_t N, typename IndexT=std::size_t>
 class CircularBuffer {
 public:
@@ -55,6 +57,30 @@ public:
     value_type& operator[](IndexT i) noexcept
     {
         return a[index(i)];
+    }
+
+    /// Access first element.
+    /// It is UB if the buffer is empty.
+    value_type& front() noexcept {
+        return a[startOffset];
+    }
+
+    /// Access first element.
+    /// It is UB if the buffer is empty.
+    const value_type& front() const noexcept {
+        return a[startOffset];
+    }
+
+    /// Access last element.
+    /// It is UB if the buffer is empty.
+    value_type& back() noexcept {
+        return a[index(used - 1)];
+    }
+
+    /// Access last element.
+    /// It is UB if the buffer is empty.
+    const value_type& back() const noexcept {
+        return a[index(used - 1)];
     }
 
 private:
