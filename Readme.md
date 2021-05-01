@@ -11,7 +11,3 @@ Goals:
 3. Streamable (decoding can be picked up from the midlle of the stream, after reading limited amount of data)
 
 Intended for ESP32, but probably will work all right elsewhere too.
-
-## TODO:
-- Experiment with predictors
-- Finalize stream format
