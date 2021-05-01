@@ -1,5 +1,7 @@
 #pragma once
 
+#include "util/circular_buffer.hpp"
+
 #include <array>
 #include <numeric>
 #include <cstdint>
@@ -13,37 +15,18 @@ class SimpleLinear {
 public:
     /// Returns a predicted value
     T predict() {
-        T prediction = history[idx(4)];
-
-        Valu += (4 * history[idx(4)] - 3 * history[idx(0)]) / 5;
-        prediction -= (4 * history[idx(4)] - 3 * history[idx(0)]) / 5;
-
+        T prediction = history.back();
+        prediction += (history.back() - history.front()) / T(N - 1);
         return prediction;
     }
 
     /// Feed a new value to the predictor
     void feed(T value) {
-        for (uint_fast8_t i = 0; i < values.size(); ++i) {
-            auto prevDerivative = i < (values.size() - 1) ? smoothedDerivatives[i + 1] : 0;
-
-            auto nextDerivative = 
-            smoothedDerivatives[i] += 
-
-            smoothedDerivatives[i] =
-                smoothedDerivatives[i] + prevDerivative \
-                - (value >> smoothingPower) \
-                - (smoothedDerivatives[i]) >> smoothingPower \- nextDerivative >> smoothingPower;
-        }
+        history.push_back(value);
     }
 
 protected:
-    /// Index into history array, parameter 0 corresponds to the oldest value,
-    /// 4 to the newest.
-    uint_fast8_t idx(uint_fast8_t i) {
-        return (oldestHistoryIndex + i) % history.size();
-    }
-
-    util::CircularBuffer<T, 5, uint_fast8_t> history;
+    util::CircularBuffer<T, N, uint_fast8_t> history;
 };
 
 
