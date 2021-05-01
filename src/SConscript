@@ -1,0 +1,29 @@
+Import("env")
+
+sanitizers = True
+debug = True
+
+env.AppendUnique(
+    CCFLAGS=["-std=c++20", "-fdiagnostics-color"],
+    CPPPATH=["#include"]
+)
+
+if debug:
+    env.AppendUnique(
+        CCFLAGS=["-g", "-Og"],
+    )
+else:
+    env.AppendUnique(
+        CCFLAGS=["-O3", "-flto"],
+        LINKFLAGS=["-flto"],
+    )
+
+if sanitizers:
+    env.AppendUnique(
+        CCFLAGS=["-fsanitize=address", "-fsanitize=undefined"],
+        LINKFLAGS=["-fsanitize=address", "-fsanitize=undefined", "-fsanitize=leak"],
+    )
+
+tablog_lib = env.StaticLibrary("tablog", Glob("**.cpp"))
+
+Export("tablog_lib")
