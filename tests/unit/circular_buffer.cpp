@@ -1,6 +1,6 @@
 #include <catch2/catch.hpp>
 
-#include "circular_buffer.hpp"
+#include "util/circular_buffer.hpp"
 
 TEST_CASE("CircularBuffer") {
     constexpr int n = 5;
