@@ -17,6 +17,11 @@ public:
     StreamEncoder(OutputF output)
         : output(std::move(output)) {}
 
+    void header(uint_fast8_t version, uint_fast8_t fieldCount) noexcept(noexcept(number())) {
+        number(version);
+        number(fieldCount);
+    }
+
     /// Encode a predictor hit streak.
     /// Streak length must be greater than 0 and less or equal than maxHitStreakLength.
     void predictor_hit_streak(uint_fast8_t streakLength) noexcept(noexcept(output_nibble())) {
