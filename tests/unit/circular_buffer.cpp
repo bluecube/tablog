@@ -7,6 +7,7 @@ TEST_CASE("CircularBuffer") {
     tablog::util::CircularBuffer<int, n> c;
 
     REQUIRE(c.size() == 0);
+    REQUIRE(c.empty());
     REQUIRE(c.capacity() == n);
 
     SECTION("with elements") {
@@ -15,6 +16,8 @@ TEST_CASE("CircularBuffer") {
             c.push_back(i);
             REQUIRE(c.size() == i + 1);
         }
+
+        REQUIRE(!c.empty());
 
         SECTION("element_access") {
             for (int i = 0; i < n; ++i)

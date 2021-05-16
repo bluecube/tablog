@@ -35,6 +35,10 @@ public:
         return a[idx];
     }
 
+    bool empty() const noexcept {
+        return used == 0;
+    }
+
     /// Number of items currently held in the buffer
     IndexT size() const noexcept {
         return used;
