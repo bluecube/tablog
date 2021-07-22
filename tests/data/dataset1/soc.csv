@@ -1,4 +1,5 @@
 timestamp,temperature1,temperature2,temperature3,temperature4,temperature5,temperature6,temperature7,cpu_load
+u64,u8,u8,u8,u8,u8,u8,u8,f100
 1611232919912920129,38,35,38,38,33,33.75,36.8,0.02
 1611232921914921946,38,35,38,38,33,33.75,36.8,0.02
 1611232923917201881,38,35,38,38,33,33.75,36.8,0.02
