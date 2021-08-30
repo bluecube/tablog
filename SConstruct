@@ -1,4 +1,8 @@
 env = Environment()
+
+env.Tool('compilation_db')
+env.CompilationDatabase()
+
 Export("env")
 
 SConscript("src/SConscript", variant_dir="build", duplicate=False)
