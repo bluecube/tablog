@@ -27,20 +27,12 @@ public:
         using unsigned_t = std::make_unsigned_t<ValueT>;
         predictor.feed(value);
 
-        if (prediction == value)
-        {
+        if (prediction == value) {
             encoder.predictor_hit_streak(1);
-            return;
+        } else {
+            const auto [absError, predictionHigh] = abs_diff(prediction, value);
+            encoder.predictor_miss(predictionHigh, absError);
         }
-
-        auto [predictionHigh, absError] = [&]() {
-            if (prediction >= value)
-                return std::make_pair(true, static_cast<unsigned_t>(prediction - value));
-            else
-                return std::make_pair(false, static_cast<unsigned_t>(value - prediction));
-        }();
-
-        encoder.predictor_miss(predictionHigh, absError);
     }
 
 private:
