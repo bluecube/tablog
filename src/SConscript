@@ -24,6 +24,6 @@ if sanitizers:
         LINKFLAGS=["-fsanitize=address", "-fsanitize=undefined", "-fsanitize=leak"],
     )
 
-tablog_lib = env.StaticLibrary("tablog", Glob("**.cpp"))
+tablog_lib = env.StaticLibrary("tablog", Glob("*.cpp") + Glob("dynamic/*.cpp"))
 
 Export("tablog_lib")

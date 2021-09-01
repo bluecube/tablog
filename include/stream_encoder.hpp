@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <limits>
+#include <utility>
 #include <cassert>
 
 namespace tablog::detail {
@@ -9,9 +10,10 @@ namespace tablog::detail {
 /// Takes stream items on input, outputs bytes through OutputF
 /// This class can't encode complete predictor comparisons, because there may be several
 /// streaks interleaved
-template <typename OutputF>
+template <typename OutputF_>
 class StreamEncoder {
 public:
+    using OutputF = OutputF_;
 
     StreamEncoder(OutputF output)
         : output(std::move(output)) {}
