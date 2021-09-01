@@ -12,10 +12,13 @@ namespace tablog::detail {
 template <typename OutputF>
 class StreamEncoder {
 public:
-    static constexpr uint_fast8_t maxHitStreakLength = 7;
 
     StreamEncoder(OutputF output)
         : output(std::move(output)) {}
+
+    constexpr uint_fast8_t get_max_hit_streak_length() const {
+        return 7;
+    }
 
     void header(uint_fast8_t version, uint_fast8_t fieldCount) {
         number(version);
@@ -26,7 +29,7 @@ public:
     /// Streak length must be greater than 0 and less or equal than maxHitStreakLength.
     void predictor_hit_streak(uint_fast8_t streakLength) {
         assert(streakLength > 0);
-        assert(streakLength <= maxHitStreakLength);
+        assert(streakLength <= get_max_hit_streak_length());
 
         output_nibble(predictorHit | streakLength);
     }
