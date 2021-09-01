@@ -16,7 +16,7 @@ public:
     /// Prediction always works, regardless of number of data points provided.
     ///    - returns zero if no data
     ///    - returns the first data point if there is only one
-    T predict() {
+    T predict() const {
         if (history.empty())
             return 0;
 
