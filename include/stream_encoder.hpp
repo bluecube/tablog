@@ -17,14 +17,14 @@ public:
     StreamEncoder(OutputF output)
         : output(std::move(output)) {}
 
-    void header(uint_fast8_t version, uint_fast8_t fieldCount) noexcept(noexcept(number())) {
+    void header(uint_fast8_t version, uint_fast8_t fieldCount) {
         number(version);
         number(fieldCount);
     }
 
     /// Encode a predictor hit streak.
     /// Streak length must be greater than 0 and less or equal than maxHitStreakLength.
-    void predictor_hit_streak(uint_fast8_t streakLength) noexcept(noexcept(output_nibble())) {
+    void predictor_hit_streak(uint_fast8_t streakLength) {
         assert(streakLength > 0);
         assert(streakLength <= maxHitStreakLength);
 
@@ -38,7 +38,7 @@ public:
     ///  - Values near zero are typically removed for tolerance, requiring abs value anyway
     ///  - We avoid possible overflows with large unsigned types
     template <typename T>
-    void predictor_miss(bool predictionHigh, T absErrorToEncode) noexcept(noexcept(output_nibble())) {
+    void predictor_miss(bool predictionHigh, T absErrorToEncode) {
         assert(absErrorToEncode > 0);
 
         absErrorToEncode -= 1;
@@ -55,7 +55,7 @@ public:
     }
 
     /// Encode end of stream marker.
-    void end_of_stream() noexcept(noexcept(output_nibble())) {
+    void end_of_stream() {
         // End of stream is encoded by two end of stream nibbles (hit streak of length 0)
         // and then padded to full buffer size.
 
@@ -67,7 +67,7 @@ public:
 
     /// Encode a number into nibbles with continuation bits
     template <typename T>
-    void number(T number) noexcept(noexcept(output_nibble()))
+    void number(T number)
     {
         do {
             uint_fast8_t encoded  = (number & numberBlockMask);
@@ -78,14 +78,14 @@ public:
     }
 
 private:
-    void output_nibble(uint_fast8_t nibble) noexcept(noexcept(flush_buffer())) {
+    void output_nibble(uint_fast8_t nibble) {
         buffer |= nibble << bufferBitsUsed;
         bufferBitsUsed += nibbleBits;
         if (bufferBitsUsed == bufferSizeBits)
             flush_buffer();
     }
 
-    void flush_buffer() noexcept(noexcept(output(buffer))) {
+    void flush_buffer() {
         output(buffer);
         bufferBitsUsed = 0;
     }
