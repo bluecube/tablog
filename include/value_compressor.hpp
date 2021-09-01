@@ -10,7 +10,7 @@ namespace tablog::detail {
 /// Class that compresses a stream of values.
 template <
     typename ValueT_,
-    typename Predictor = predictors::SimpleLinear<ValueT_, 2>,
+    typename Predictor = predictors::SimpleLinear<ValueT_, 2>
 >
 class ValueCompressor {
 public:
