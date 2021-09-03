@@ -7,6 +7,8 @@
 #include <cassert>
 #include <iostream>
 
+#include "stream_encoder.hpp"
+
 namespace tablog::test {
 
 /// Takes stream items on input, outputs bytes through OutputF
@@ -31,6 +33,9 @@ private:
     size_t streakCounts[maxHitStreakLength];
     size_t positiveCounts[maxMissDistance];
     size_t negativeCounts[maxMissDistance];
+    size_t encodedByteCount;
+
+    detail::StreamEncoder<StreamOutF> streamEncoder;
 };
 
 };
