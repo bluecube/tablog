@@ -26,6 +26,14 @@ public:
     void end_of_stream() override;
 
 private:
+    struct StreamOutF {
+        void operator()(uint8_t) {
+            se.encodedByteCount++;
+        }
+
+        StatEncoder& se;
+    };
+
     std::ostream& stream;
 
     static constexpr size_t maxMissDistance = 20;
