@@ -1,3 +1,14 @@
+class ZeroPredictor:
+    def predict(self):
+        return 0
+
+    def feed(self, value):
+        pass
+
+    def __str__(self):
+        return "ZeroPredictor()"
+
+
 class SimpleLinearPredictor:
     def __init__(self, history_length):
         self._history = []
