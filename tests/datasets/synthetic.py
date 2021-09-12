@@ -61,7 +61,7 @@ def sawtooth(t, period, length):
 
 def _random(gen, t, length):
     low, high = _parse_type(t)
-    return (gen.integers(low, high) for _ in range(length))
+    return (int(gen.integers(low, high)) for _ in range(length))
 
 def _make_generator(*args):
     hasher = hashlib.sha1()
