@@ -1,7 +1,5 @@
 import os.path
 
-import synthetic
-
 def _all_csv():
     current_dir = os.path.dirname(__file__)
     for (dirpath, dirnames, filenames) in os.walk(current_dir):
@@ -46,8 +44,6 @@ def individual_datasets():
         columns = _csv_headers(path)
         for i, name in enumerate(columns):
             yield (title + "#" + name, _CsvColumn(path, i))
-
-    yield from synthetic.all(length=5000)
 
 if __name__ == "__main__":
     for name, _ in individual_datasets():
