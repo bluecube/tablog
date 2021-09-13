@@ -13,8 +13,7 @@ def evaluate_predictor_dataset(predictor, dataset):
     for x in dataset:
         error = abs(x - predictor.predict())
         count += 1
-        if error > 0:
-            score += math.log2(error) + 1
+        score += math.log2((abs(x) + 1) / (abs(error) + 1))
         predictor.feed(x)
 
     return score, count
