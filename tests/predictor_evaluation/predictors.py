@@ -47,6 +47,6 @@ evaluate_predictors(
     predictors.SimpleLinearPredictor(1),
     predictors.SimpleLinearPredictor(3),
     predictors.SimpleLinearPredictor(10),
-    predictors.GeneralizedEWMA(1, 0.5),
-    predictors.GeneralizedEWMA(3, 0.5),
+    #predictors.GeneralizedEWMA(1, 0.9),
+    #predictors.GeneralizedEWMA(3, 0.9),
 )
