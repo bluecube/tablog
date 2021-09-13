@@ -8,30 +8,26 @@ class ZeroPredictor:
     def __str__(self):
         return "ZeroPredictor()"
 
-
-class SimpleLinearPredictor:
+class _HistoryPredictor:
     def __init__(self, history_length):
-        self._history = []
-        self._history_length = history_length
+        self._history = [0] * history_length
+
+    def feed(self, value):
+        self._history = self._history[1:] + [value]
+
+
+class SimpleLinearPredictor(_HistoryPredictor):
+    def __init__(self, history_length):
+        super().__init__(history_length)
 
     def predict(self):
-        if len(self._history) == 0:
-            return 0
-
         prediction = self._history[-1]
         if len(self._history) > 1:
             prediction += (self._history[-1] - self._history[0]) // (len(self._history) - 1)
-
         return prediction
 
-    def feed(self, value):
-        if len(self._history) < self._history_length:
-            self._history.append(value)
-        else:
-            self._history = self._history[1:] + [value]
-
     def __str__(self):
-        return f"SimpleLinearPredictor({self._history_length})"
+        return f"SimpleLinearPredictor({len(self._history)})"
 
 
 class GeneralizedEWMA:
