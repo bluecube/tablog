@@ -20,7 +20,7 @@ def evaluate_predictor_dataset(predictor, dataset):
 
 def evaluate_predictors(*predictors):
     predictor_results = {}
-    #TODO: Dataset results
+    dataset_results = {}
 
     for predictor in predictors:
         print(f"{predictor}:")
@@ -33,10 +33,25 @@ def evaluate_predictors(*predictors):
             score_sum += score
             total_count += count
 
+            try:
+                dataset_score_sum, dataset_total_count = dataset_results[dataset_name]
+            except KeyError:
+                dataset_score_sum = 0
+                dataset_total_count = 0
+            dataset_score_sum += score
+            dataset_total_count += count
+            dataset_results[dataset_name] = (dataset_score_sum, dataset_total_count)
+
         predictor_results[str(predictor)] = score_sum / total_count
 
     print()
     print("Total:")
+
+    for dataset_name, (score_sum, total_count) in dataset_results.items():
+        avg_score = score_sum / total_count
+        print(f"  {dataset_name}: {avg_score:.1f}")
+
+    print()
     for predictor_name, avg_score in sorted(predictor_results.items(), key=operator.itemgetter(1)):
         print(f"  {predictor_name}: {avg_score:.1f}")
 
