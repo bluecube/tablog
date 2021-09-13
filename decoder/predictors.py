@@ -30,6 +30,39 @@ class SimpleLinearPredictor(_HistoryPredictor):
         return f"SimpleLinearPredictor({len(self._history)})"
 
 
+class ThreePointQuadraticPredictor(_HistoryPredictor):
+    def __init__(self):
+        super().__init__(3)
+
+    def predict(self):
+        return self._history[0] + 3 * (self._history[2] - self._history[1])
+
+    def __str__(self):
+        return f"ThreePointQuadraticPredictor()"
+
+
+class FourPointQuadraticPredictor(_HistoryPredictor):
+    def __init__(self):
+        super().__init__(4)
+
+    def predict(self):
+        return self._history[-1] + (3 * (self._history[0] - self._history[2]) + 5 * (self._history[3] - self._history[1])) // 4
+
+    def __str__(self):
+        return f"FourPointQuadraticPredictor()"
+
+
+class FivePointQuadraticPredictor(_HistoryPredictor):
+    def __init__(self):
+        super().__init__(5)
+
+    def predict(self):
+        return self._history[-1] + (3 * (self._history[0] - self._history[1]) + 4 * (self._history[4] - self._history[2])) // 5
+
+    def __str__(self):
+        return f"FivePointQuadraticPredictor()"
+
+
 class GeneralizedEWMA:
     def __init__(self, degree, smoothing):
         self._derivatives = [0] * degree

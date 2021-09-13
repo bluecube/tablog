@@ -59,8 +59,14 @@ def evaluate_predictors(*predictors):
 evaluate_predictors(
     predictors.ZeroPredictor(),
     predictors.SimpleLinearPredictor(1),
+    predictors.SimpleLinearPredictor(2),
     predictors.SimpleLinearPredictor(3),
+    predictors.SimpleLinearPredictor(4),
+    predictors.SimpleLinearPredictor(5),
     predictors.SimpleLinearPredictor(10),
+    predictors.ThreePointQuadraticPredictor(),
+    predictors.FourPointQuadraticPredictor(),
+    predictors.FivePointQuadraticPredictor(),
     #predictors.GeneralizedEWMA(1, 0.9),
     #predictors.GeneralizedEWMA(3, 0.9),
 )
