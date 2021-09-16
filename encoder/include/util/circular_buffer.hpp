@@ -89,7 +89,11 @@ public:
 
 private:
     IndexT index(IndexT i) const noexcept {
-        return (startOffset + i) % N;
+        IndexT i2 = startOffset + i;
+        if (i2 < N)
+            return i2;
+        else
+            return i2 - N;
     }
 
     IndexT startOffset = 0;
@@ -171,7 +175,11 @@ public:
 
 private:
     IndexT index(IndexT i) const noexcept {
-        return (startOffset + i) % N;
+        IndexT i2 = startOffset + i;
+        if (i2 < N)
+            return i2;
+        else
+            return i2 - N;
     }
 
     IndexT startOffset = 0;
