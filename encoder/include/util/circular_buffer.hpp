@@ -5,7 +5,7 @@
 
 namespace tablog::util {
 
-/// Fixed size circular buffer.
+/// Fixed capacity circular buffer.
 /// Never allocates, never throws.
 /// Indexing type may be replaced for MCU compatibility.
 template <typename T, std::size_t N, typename IndexT=std::size_t>
