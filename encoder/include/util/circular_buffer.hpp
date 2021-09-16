@@ -97,4 +97,85 @@ private:
     T a[N];
 };
 
+/// Fixed size circular buffer. Initialized by pre-filling with a value, cannot pop.
+/// Never allocates, never throws.
+/// Indexing type may be replaced for MCU compatibility.
+template <typename T, std::size_t N, typename IndexT=std::size_t>
+class CircularBufferFixed {
+public:
+    using value_type = T;
+
+    CircularBufferFixed(value_type initialValue = value_type()) {
+        for (IndexT i = 0; i < N; ++i)
+            a[i] = initialValue;
+    }
+
+    /// Push an item to the buffer, removes the oldest one.
+    void push_back(const T& v) noexcept {
+        a[startOffset] = v;
+        startOffset = index(1);
+    }
+
+    /// Fixed circuar buffer can never be empty.
+    bool empty() const noexcept {
+        return false;
+    }
+
+    /// Fixed circular buffer is always full.
+    IndexT size() const noexcept {
+        return N;
+    }
+
+    /// Maximum number of items held in this buffer.
+    static IndexT capacity() noexcept {
+        return N;
+    }
+
+    /// Access i-th element.
+    /// Accessing nonexistent item is UB.
+    const value_type& operator[](IndexT i) const noexcept
+    {
+        return a[index(i)];
+    }
+
+    /// Access i-th element.
+    /// Accessing nonexistent item is UB.
+    value_type& operator[](IndexT i) noexcept
+    {
+        return a[index(i)];
+    }
+
+    /// Access first element.
+    /// It is UB if the buffer is empty.
+    value_type& front() noexcept {
+        return a[startOffset];
+    }
+
+    /// Access first element.
+    /// It is UB if the buffer is empty.
+    const value_type& front() const noexcept {
+        return a[startOffset];
+    }
+
+    /// Access last element.
+    /// It is UB if the buffer is empty.
+    value_type& back() noexcept {
+        return a[index(N - 1)];
+    }
+
+    /// Access last element.
+    /// It is UB if the buffer is empty.
+    const value_type& back() const noexcept {
+        return a[index(N - 1)];
+    }
+
+private:
+    IndexT index(IndexT i) const noexcept {
+        return (startOffset + i) % N;
+    }
+
+    IndexT startOffset = 0;
+    T a[N];
+};
+
 }

@@ -63,3 +63,39 @@ TEST_CASE("CircularBuffer") {
         REQUIRE(c.back() == 42);
     }
 }
+
+TEST_CASE("CircularBufferFixed") {
+    constexpr int n = 5;
+    constexpr int defaultValue = 100;
+    tablog::util::CircularBufferFixed<int, n> c(defaultValue);
+
+    SECTION("default values") {
+        REQUIRE(c.size() == n);
+        REQUIRE(!c.empty());
+        REQUIRE(c.capacity() == n);
+
+        for (int i = 0; i < n; ++i)
+            REQUIRE(c[i] == defaultValue);
+    }
+
+    SECTION("with elements") {
+        for (int i = 0; i < n; ++i)
+            c.push_back(i);
+
+        SECTION("element_access") {
+            for (int i = 0; i < n; ++i)
+                REQUIRE(c[i] == i);
+            REQUIRE(c.front() == 0);
+            REQUIRE(c.back() == n - 1);
+        }
+
+        SECTION("overflow") {
+            int max = 2 * n + n / 2;
+            for (int i = 0; i < max; ++i)
+                c.push_back(i);
+
+            for (int i = 0; i < n; ++i)
+                REQUIRE(c[i] == max - n + i);
+        }
+    }
+}
