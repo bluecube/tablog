@@ -14,17 +14,9 @@ class SimpleLinear {
 public:
     /// Returns a predicted value
     /// Prediction always works, regardless of number of data points provided.
-    ///    - returns zero if no data
-    ///    - returns the first data point if there is only one
     T predict() const {
-        if (history.empty())
-            return 0;
-
         T prediction = history.back();
-
-        if (history.size() > 1)
-            prediction += (history.back() - history.front()) / T(history.size() - 1);
-
+        prediction += (history.back() - history.front()) / T(history.size() - 1);
         return prediction;
     }
 
@@ -34,7 +26,7 @@ public:
     }
 
 protected:
-    util::CircularBuffer<T, N, uint_fast8_t> history;
+    util::CircularBufferFixed<T, N, uint_fast8_t> history;
 };
 
 }

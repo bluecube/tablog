@@ -12,11 +12,11 @@ TEST_CASE("SimpleLinear predictor") {
         // Return zero if no data have been provided so far
 
     SECTION("Predictor is actually linear") {
-        predictor.feed(test_data(0));
-        REQUIRE(predictor.predict() == test_data(0));
-            // Predict the same value if there is only one data point
+        // skip over the initial zeros
+        for (std::size_t i = 0; i < n; ++i)
+            predictor.feed(test_data(i));
 
-        for (unsigned i = 1; i < 10 * n; ++i)
+        for (std::size_t i = n; i < 10 * n; ++i)
         {
             predictor.feed(test_data(i));
             REQUIRE(predictor.predict() == test_data(i + 1));
