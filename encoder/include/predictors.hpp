@@ -1,6 +1,7 @@
 #pragma once
 
 #include "util/circular_buffer.hpp"
+#include "util/misc.hpp"
 
 #include <array>
 #include <numeric>
@@ -15,9 +16,7 @@ public:
     /// Returns a predicted value
     /// Prediction always works, regardless of number of data points provided.
     T predict() const {
-        T prediction = history.back();
-        prediction += (history.back() - history.front()) / T(history.size() - 1);
-        return prediction;
+        return detail::extrapolate<T, N - 1>(history.front(), history.back());
     }
 
     /// Feed a new value to the predictor
