@@ -1,6 +1,8 @@
+#include "util/misc.hpp"
+
 #include <catch2/catch.hpp>
 
-#include "util/misc.hpp"
+#include <limits>
 
 TEST_CASE("abs_diff uint8_t") {
     auto params = GENERATE(Catch::Generators::values({
@@ -52,4 +54,42 @@ TEST_CASE("abs_diff double") {
 
     REQUIRE(ret.first == Approx(expected.first));
     REQUIRE(ret.second == expected.second);
+}
+
+TEMPLATE_TEST_CASE("extrapolate", "",
+    uint8_t, int8_t,
+    uint16_t, int16_t,
+    uint32_t, int32_t,
+    uint64_t, int64_t) {
+    using T = TestType;
+
+    static constexpr auto max = std::numeric_limits<T>::max();
+    static constexpr auto min = std::numeric_limits<T>::min();
+
+    auto params = GENERATE(
+        std::make_pair(std::make_pair(0ll, 0ll), 0ll),
+        std::make_pair(std::make_pair(10ll, 20ll), 25ll),
+        std::make_pair(std::make_pair(20ll, 10ll), 5ll),
+        std::make_pair(std::make_pair(max - 10ll, max), max),
+        std::make_pair(std::make_pair(max, max - 10ll), max - 15ll),
+        std::make_pair(std::make_pair(min + 10ll, min), min),
+        std::make_pair(std::make_pair(min, min + 10ll), min + 15ll),
+        std::make_pair(std::make_pair(min, max), max),
+        std::make_pair(std::make_pair(max, min), min),
+        std::make_pair(std::make_pair(1, 2), 2),
+        std::make_pair(std::make_pair(2, 1), 1),
+        std::make_pair(std::make_pair(1, 4), 5),
+        std::make_pair(std::make_pair(7, 4), 3),
+        std::make_pair(std::make_pair(max - 4ll, max - 2ll), max - 1ll),
+        std::make_pair(std::make_pair(min + 4ll, min + 2ll), min + 1ll)
+    );
+
+    const auto [inputs, expected] = params;
+
+    auto ret = tablog::detail::extrapolate<T, 2>(inputs.first, inputs.second);
+    //std::cout << inputs.first << " " << inputs.second << " -> " << ret << " =?= " << expected << "\n";
+
+    static_assert(std::is_same_v<decltype(ret), T>, "Returning same type");
+
+    REQUIRE(ret == expected);
 }
