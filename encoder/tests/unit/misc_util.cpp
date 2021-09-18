@@ -3,6 +3,7 @@
 #include <catch2/catch.hpp>
 
 #include <limits>
+#include <cmath>
 
 TEST_CASE("abs_diff uint8_t") {
     auto params = GENERATE(Catch::Generators::values({
@@ -92,4 +93,11 @@ TEMPLATE_TEST_CASE("extrapolate", "",
     static_assert(std::is_same_v<decltype(ret), T>, "Returning same type");
 
     REQUIRE(ret == expected);
+}
+
+TEST_CASE("small_int_log2") {
+    auto v = GENERATE(Catch::Generators::range(1, 9));
+    auto ret = tablog::detail::small_int_log2(v);
+
+    REQUIRE(ret == floor(log2(v)));
 }

@@ -3,6 +3,7 @@
 #include <type_traits>
 #include <utility>
 #include <limits>
+#include <cstdint>
 
 namespace tablog::detail {
 
@@ -56,6 +57,11 @@ constexpr T extrapolate(T first, T last) noexcept {
         return std::numeric_limits<T>::max();
   }
   return ret;
+}
+
+/// Calculate floor(log2(v)) for values between 1 and 9 (inclusive).
+constexpr uint_fast8_t small_int_log2(uint_fast8_t v) {
+    return (v >> 1) - (v > 5);
 }
 
 }
