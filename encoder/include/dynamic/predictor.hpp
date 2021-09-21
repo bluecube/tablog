@@ -2,6 +2,9 @@
 
 #include <cstdint>
 #include <memory>
+#include <limits>
+#include <stdexcept>
+#include <type_traits>
 
 namespace tablog::dynamic {
 
@@ -25,6 +28,12 @@ public:
     /// Feed a new value to the predictor
     virtual void feed(int64_t value) = 0;
 
+    /// Return signedness of the predictor type.
+    virtual bool t_is_signed() const = 0;
+
+    /// Return size of the predictor type
+    virtual std::size_t sizeof_t() const = 0;
+
     /// Create a new default constructed instance of the predictor
     virtual Predictor make_new() const = 0;
 };
@@ -40,7 +49,21 @@ public:
     }
 
     void feed(int64_t value) override {
-        predictor.feed(value);
+        using Type = typename T::Type;
+        if (value > std::numeric_limits<Type>::max() ||
+            value < std::numeric_limits<Type>::min())
+            throw std::runtime_error("Predictor value out of range");
+        predictor.feed(static_cast<Type>(value));
+    }
+
+    /// Return signedness of the predictor type.
+    bool t_is_signed() const override {
+        return std::is_signed_v<typename T::Type>;
+    }
+
+    /// Return size of the predictor type
+    std::size_t sizeof_t() const override {
+        return sizeof(typename T::Type);
     }
 
     Predictor make_new() const override {

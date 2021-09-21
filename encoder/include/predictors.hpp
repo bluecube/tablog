@@ -13,6 +13,8 @@ namespace tablog::predictors {
 template <typename T, std::size_t N>
 class SimpleLinear {
 public:
+    using Type = T;
+
     /// Returns a predicted value
     /// Prediction always works, regardless of number of data points provided.
     T predict() const {
