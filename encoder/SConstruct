@@ -1,7 +1,43 @@
-env = Environment()
+import os
+
+def bool_arg(s):
+    if isinstance(s, bool):
+        return s
+
+    lc = s.lower()
+    if lc in ["true", "y", "yes", "on"]:
+        return True
+    elif lc in ["false", "n", "no", "off"]:
+        return False
+
+    try:
+        i = int(s)
+    except ValueError:
+        return bool(s)
+    else:
+        return bool(i)
+
+def sanitizer_arg(s):
+    if isinstance(s, bool):
+        return s
+
+    if s.lower() == "thread":
+        return "thread"
+    else:
+        return bool_arg(s)
+
+env = Environment(
+    ENV={'PATH': os.environ['PATH']},
+    COMPILATIONDB_USE_ABSPATH=True,
+)
 
 env.Tool('compilation_db')
 env.CompilationDatabase()
+
+env["sanitize"] = sanitizer_arg(ARGUMENTS.get("sanitize", True)) # True, False or "thread"
+env["debug"] = bool_arg(ARGUMENTS.get("debug", True))
+env["native"] = bool_arg(ARGUMENTS.get("native", True))
+env["clang"] = bool_arg(ARGUMENTS.get("clang", False))
 
 Export("env")
 

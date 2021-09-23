@@ -92,7 +92,7 @@ TEMPLATE_TEST_CASE("extrapolate", "",
 
     static_assert(std::is_same_v<decltype(ret), T>, "Returning same type");
 
-    REQUIRE(ret == expected);
+    REQUIRE(static_cast<int64_t>(ret) == expected);
 }
 
 TEST_CASE("small_int_log2") {

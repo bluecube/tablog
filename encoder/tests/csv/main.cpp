@@ -143,7 +143,7 @@ int main(int argc, const char** argv) {
         return EXIT_FAILURE;
     }
 
-    for (size_t i = 1; i < argc; ++i) {
+    for (size_t i = 1; i < static_cast<size_t>(argc); ++i) {
         if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) {
             usage(argv[0]);
             return EXIT_SUCCESS;

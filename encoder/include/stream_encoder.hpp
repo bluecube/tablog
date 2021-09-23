@@ -51,7 +51,6 @@ public:
         uint_fast8_t encoded = predictorMiss;
         encoded |= static_cast<uint_fast8_t>(predictionHigh) << predictorHighFlagShift;
         encoded |= absErrorToEncode & predictorMissValueMask;
-        absErrorToEncode >> predictorMissValueBits;
         encoded |= (absErrorToEncode == 0) << predictorMissFinalFlagShift;
         output_nibble(encoded);
 
