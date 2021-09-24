@@ -20,11 +20,13 @@ def all(length):
                 for period in [100, 10000]:
                     yield (
                         dataset_name_prefix + f', period={period}' + dataset_name_suffix,
+                        t,
                         func(t, period, length)
                     )
             else:
                 yield (
                     dataset_name_prefix + dataset_name_suffix,
+                    t,
                     func(t, length)
                 )
 
@@ -58,6 +60,9 @@ def sine(t, period, length):
 
 def sawtooth(t, period, length):
     return _remap(lambda x: math.modf(x)[0], 0, 1, 1/period, t, length)
+
+def minor7chord(t, period, length):
+    return _remap(lambda x: math.sin(x) + math.sin(x * 1.2) + math.sin(x * 1.5) + math.sin(x * 1.8), -4, 4, 2 * math.pi / period, t, length)
 
 def _random(gen, t, length):
     low, high = _parse_type(t)

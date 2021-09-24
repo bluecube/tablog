@@ -1,29 +1,57 @@
-class ZeroPredictor:
-    def predict(self):
-        return 0
+def parse_type(t):
+    """ Return closed interval of values """
+    scale_bits = int(t[1:])
+    if t[0] == "s":
+        high = 1 << (scale_bits - 1)
+        low = -high
+    elif t[0] == "u":
+        low = 0
+        high = 1 << scale_bits
+    else:
+        raise ValueError("Type must be 's' or 'u' (have " + t + ")")
 
-    def feed(self, value):
-        pass
-
-    def __str__(self):
-        return "ZeroPredictor()"
+    return (low, high - 1)
 
 class _HistoryPredictor:
-    def __init__(self, history_length):
+    def __init__(self, t, history_length):
         self._history = [0] * history_length
+        (self._min, self._max) = parse_type(t)
 
     def feed(self, value):
         self._history = self._history[1:] + [value]
 
+    @classmethod
+    def factory(cls, *args, **kwargs):
+        ret = lambda t: cls(t, *args, **kwargs)
+        ret.__name__ = (
+            cls.__name__ +
+            "(t" +
+            "".join(f", {x}" for x in args) +
+            "".join(", {k}={v}" for k, v in kwargs.items()) +
+            ")"
+        )
+        return ret
 
 class SimpleLinearPredictor(_HistoryPredictor):
-    def __init__(self, history_length):
-        super().__init__(history_length)
+    def __init__(self, t, history_length):
+        super().__init__(t, history_length)
 
     def predict(self):
+        if len(self._history) == 1:
+            return self._history[0]
+
         prediction = self._history[-1]
-        if len(self._history) > 1:
-            prediction += (self._history[-1] - self._history[0]) // (len(self._history) - 1)
+        first = self._history[0]
+        last = self._history[-1]
+        if first > last:
+            prediction -= (first - last) // (len(self._history) - 1)
+            if prediction < self._min:
+                prediction = self._min
+        else:
+            prediction += (last - first) // (len(self._history) - 1)
+            if prediction > self._max:
+                prediction = self._max
+
         return prediction
 
     def __str__(self):
@@ -31,8 +59,8 @@ class SimpleLinearPredictor(_HistoryPredictor):
 
 
 class ThreePointQuadraticPredictor(_HistoryPredictor):
-    def __init__(self):
-        super().__init__(3)
+    def __init__(self, t):
+        super().__init__(t, 3)
 
     def predict(self):
         return self._history[0] + 3 * (self._history[2] - self._history[1])
@@ -42,8 +70,8 @@ class ThreePointQuadraticPredictor(_HistoryPredictor):
 
 
 class FourPointQuadraticPredictor(_HistoryPredictor):
-    def __init__(self):
-        super().__init__(4)
+    def __init__(self, t):
+        super().__init__(t, 4)
 
     def predict(self):
         return self._history[-1] + (3 * (self._history[0] - self._history[2]) + 5 * (self._history[3] - self._history[1])) // 4
@@ -53,8 +81,8 @@ class FourPointQuadraticPredictor(_HistoryPredictor):
 
 
 class FivePointQuadraticPredictor(_HistoryPredictor):
-    def __init__(self):
-        super().__init__(5)
+    def __init__(self, t):
+        super().__init__(t, 5)
 
     def predict(self):
         return self._history[-1] + (3 * (self._history[0] - self._history[1]) + 4 * (self._history[4] - self._history[2])) // 5
@@ -64,7 +92,7 @@ class FivePointQuadraticPredictor(_HistoryPredictor):
 
 
 class GeneralizedEWMA:
-    def __init__(self, degree, smoothing):
+    def __init__(self, t, degree, smoothing):
         self._derivatives = [0] * degree
         self._smoothing = smoothing
 
