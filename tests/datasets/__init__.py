@@ -1,6 +1,7 @@
 from . import csv_datasets
 from . import synthetic
 
-def individual_datasets():
+def individual_datasets(synthetic=True):
     yield from csv_datasets.individual_datasets()
-    yield from synthetic.all(length=5000)
+    if synthetic:
+        yield from synthetic.all(length=5000)

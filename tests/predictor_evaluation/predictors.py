@@ -27,7 +27,7 @@ def evaluate_predictors(*predictor_factories):
         print(f"{predictor}:")
         score_sum = 0
         total_count = 0
-        for dataset_name, dataset_type, dataset in individual_datasets():
+        for dataset_name, dataset_type, dataset in individual_datasets(synthetic=False):
             score, count = evaluate_predictor_dataset(
                 predictor_factory(dataset_type),
                 dataset_type,
