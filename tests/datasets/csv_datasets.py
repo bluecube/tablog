@@ -1,7 +1,29 @@
 import os.path
 import re
 
-def _all_csv():
+# Hackish workaround to be able to run this as a script too (rather than just as a part of a package)
+try:
+    import dataset
+except ImportError:
+    from . import dataset
+
+class _CsvDataIterator:
+    def __init__(self, fp, converters, data_slice):
+        self._fp = fp
+        self._converters = converters
+        self._slice = data_slice
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        raw_fields = next(self._fp).split(",")
+        sliced = raw_fields[self._slice]
+        converted = [converter(x) for converter, x in zip(self._converters, sliced)]
+        return converted
+
+
+def _all_csv_files():
     current_dir = os.path.dirname(__file__)
     for (dirpath, dirnames, filenames) in os.walk(current_dir):
         rel_dirpath = os.path.relpath(dirpath, current_dir)
@@ -11,15 +33,8 @@ def _all_csv():
                 rel_file_path = os.path.join(rel_dirpath, filename)
                 yield (file_path, rel_file_path)
 
-def _csv_headers(path):
-    with open(path, "r") as fp:
-        names = next(fp).split(",")
-        types = next(fp).split(",")
-
-    return [(name.strip(), t.strip()) for name, t in zip(names, types)]
-
-""" Retunr tuple of converter function and converted type """
 def _parse_type(t):
+    """ Return tuple of converter function and converted type """
     match = re.match(r"(?:f(\d+)\()?([us]\d\d?)\)?", t)
     if not match:
         raise ValueError("Type " + t + " doesn't match the regex")
@@ -32,30 +47,52 @@ def _parse_type(t):
             return round(float(s) * multiplier)
         return converter, match[2]
 
-class _CsvColumn:
-    def __init__(self, path, column, converter):
-        self._fp = open(path, "r")
+def _open_dataset(csv_path, csv_name):
+    fp = open(csv_path, "r")
 
-        next(self._fp)  # ignore title line
-        next(self._fp)  # ignore type line
+    field_names = [x.strip() for x in next(fp).split(",")]
 
-        self._column = column
-        self._converter = converter
+    field_types = []
+    converters = []
+    for t in [x.strip() for x in next(fp).split(",")]:
+        converter, converted_t = _parse_type(t)
+        field_types.append(converted_t)
+        converters.append(converter)
 
-    def __next__(self):
-        return self._converter(next(self._fp).split(",")[self._column].strip())
+    data_iterator = _CsvDataIterator(fp, converters, slice(None))
 
-    def __iter__(self):
-        return self
+    return dataset.Dataset(csv_name, field_names, field_types, data_iterator)
 
+
+def all_datasets():
+    for csv_path, csv_name in _all_csv_files():
+        yield _open_dataset(csv_path, csv_name)
 
 def individual_datasets():
-    for path, csv_name in _all_csv():
-        columns = _csv_headers(path)
-        for i, (column_name, column_type) in enumerate(columns):
-            converter, converted_type = _parse_type(column_type)
-            yield (csv_name + "#" + column_name, converted_type, _CsvColumn(path, i, converter))
+    for d in all_datasets():
+        filename = d.data_iterator._fp.name
+
+        for i in range(len(d.field_names)):
+            # Duplicate the file pointer
+            fp = open(filename)
+            # Skip the header lines
+            next(fp)
+            next(fp)
+
+            yield dataset.Dataset(
+                d.name + "#" + d.field_names[i],
+                ["value"],
+                [d.field_types[i]],
+                _CsvDataIterator(
+                    fp,
+                    [d.data_iterator._converters[i]],
+                    slice(i, i + 1)
+                )
+            )
 
 if __name__ == "__main__":
-    for name, t, _ in individual_datasets():
-        print(f"{name}: {t}")
+    print("All datasets")
+    dataset.show_content(all_datasets())
+    print()
+    print("Individual datasets")
+    dataset.show_content(individual_datasets())
