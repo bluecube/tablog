@@ -8,7 +8,7 @@ def _find_binary():
     )
 
 
-def _serialize_json_row(row):
+def _serialize_csv_row(row):
     it = iter(row)
     yield next(it).encode("utf-8")
     for s in it:
@@ -18,10 +18,10 @@ def _serialize_json_row(row):
 
 
 def _serialize_dataset(dataset):
-    yield from _serialize_json_row(dataset.field_names)
-    yield from _serialize_json_row(dataset.field_types)
+    yield from _serialize_csv_row(dataset.field_names)
+    yield from _serialize_csv_row(dataset.field_types)
     for row in dataset.data_iterator:
-        yield from _serialize_json_row(map(str, row))
+        yield from _serialize_csv_row(map(str, row))
 
 
 def encode(dataset, encoder="stream", predictor="linear3"):
