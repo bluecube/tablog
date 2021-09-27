@@ -46,11 +46,17 @@ void StatEncoder::end_of_stream() {
 void StatEncoder::predictor_hit_streak(uint_fast8_t streakLength) {
     streamEncoder.predictor_hit_streak(streakLength);
 
+    if (streakLength > maxHitStreakLength)
+        throw std::runtime_error("Hit streak length out of range");
+
     streakCounts[streakLength - 1]++;
 }
 
 void StatEncoder::predictor_miss(bool predictionHigh, uint64_t absErrorToEncode) {
     streamEncoder.predictor_miss(predictionHigh, absErrorToEncode);
+
+    if (absErrorToEncode > maxMissDistance)
+        absErrorToEncode = maxMissDistance;
 
     if (predictionHigh) {
         positiveCounts[absErrorToEncode - 1]++;
