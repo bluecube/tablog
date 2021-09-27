@@ -1,3 +1,5 @@
+import itertools
+
 def parse_type(t):
     """ Return closed interval of values """
     scale_bits = int(t[1:])
@@ -23,16 +25,16 @@ class _HistoryPredictor:
     @classmethod
     def factory(cls, *args, **kwargs):
         ret = lambda t: cls(t, *args, **kwargs)
-        ret.__name__ = (
-            cls.__name__ +
-            "(t" +
-            "".join(f", {x}" for x in args) +
-            "".join(", {k}={v}" for k, v in kwargs.items()) +
-            ")"
-        )
+        ret.__name__ = cls.__name__
+        if len(args) or len(kwargs):
+            ret.__name__ += (
+                "(" +
+                ", ".join(itertools.chain((f"{x}" for x in args), ("{k}={v}" for k, v in kwargs.items()))) +
+                ")"
+            )
         return ret
 
-class SimpleLinearPredictor(_HistoryPredictor):
+class Linear(_HistoryPredictor):
     def __init__(self, t, history_length):
         super().__init__(t, history_length)
 
@@ -58,7 +60,7 @@ class SimpleLinearPredictor(_HistoryPredictor):
         return f"SimpleLinearPredictor({len(self._history)})"
 
 
-class ThreePointQuadraticPredictor(_HistoryPredictor):
+class LSTSQQuadratic3(_HistoryPredictor):
     def __init__(self, t):
         super().__init__(t, 3)
 
@@ -69,7 +71,7 @@ class ThreePointQuadraticPredictor(_HistoryPredictor):
         return f"ThreePointQuadraticPredictor()"
 
 
-class FourPointQuadraticPredictor(_HistoryPredictor):
+class LSTSQQuadratic4(_HistoryPredictor):
     def __init__(self, t):
         super().__init__(t, 4)
 
@@ -80,7 +82,7 @@ class FourPointQuadraticPredictor(_HistoryPredictor):
         return f"FourPointQuadraticPredictor()"
 
 
-class FivePointQuadraticPredictor(_HistoryPredictor):
+class LSTSQQuadratic5(_HistoryPredictor):
     def __init__(self, t):
         super().__init__(t, 5)
 
