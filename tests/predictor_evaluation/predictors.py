@@ -7,6 +7,7 @@ import itertools
 from datasets import individual_datasets
 from decoder import predictors
 
+
 def evaluate_predictor_dataset(predictor, dataset):
     count = 0
     score = 0
@@ -20,8 +21,10 @@ def evaluate_predictor_dataset(predictor, dataset):
 
     return score, count
 
+
 def open_datasets():
     yield from individual_datasets(include_synthetic=False)
+
 
 def evaluate_predictors(*predictor_factories):
     results = {}
@@ -35,8 +38,7 @@ def evaluate_predictors(*predictor_factories):
         for dataset in open_datasets():
             assert len(dataset.field_types) == 1
             score, count = evaluate_predictor_dataset(
-                predictor_factory(dataset.field_types[0]),
-                dataset
+                predictor_factory(dataset.field_types[0]), dataset
             )
             results[dataset.name, predictor] = (score, count)
 
@@ -71,23 +73,23 @@ def evaluate_predictors(*predictor_factories):
 
     column_widths = [len(x) for x in table_header]
     for row in table_data:
-        assert(len(column_widths) == len(row))
+        assert len(column_widths) == len(row)
         column_widths = [max(w, len(s)) for w, s in zip(column_widths, row)]
 
     def tag(s, w, tag_name):
         return f"<{tag_name}>{s}</{tag_name}>".rjust(w + 5 + 2 * len(tag_name))
 
     print("<table><thead>")
-    print("<tr>", end='')
+    print("<tr>", end="")
     for h, w in zip(table_header, column_widths):
-        print(tag(h, w, "th"), end='')
+        print(tag(h, w, "th"), end="")
     print("</tr>")
     print("</thead><tbody>")
     for row in table_data:
-        print("<tr>", end='')
-        print(tag(row[0], column_widths[0], "th"), end='')
+        print("<tr>", end="")
+        print(tag(row[0], column_widths[0], "th"), end="")
         for s, w in zip(row[1:], column_widths[1:]):
-            print(tag(s, w, "td"), end='')
+            print(tag(s, w, "td"), end="")
         print("</tr>")
     print("</tbody></table>")
 
@@ -102,6 +104,6 @@ evaluate_predictors(
     predictors.LSTSQQuadratic3,
     predictors.LSTSQQuadratic4,
     predictors.LSTSQQuadratic5,
-    #predictors.GeneralizedEWMA(1, 0.9),
-    #predictors.GeneralizedEWMA(3, 0.9),
+    # predictors.GeneralizedEWMA(1, 0.9),
+    # predictors.GeneralizedEWMA(3, 0.9),
 )

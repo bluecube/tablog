@@ -1,5 +1,6 @@
 import itertools
 
+
 def parse_type(t):
     """ Return closed interval of values """
     scale_bits = int(t[1:])
@@ -13,6 +14,7 @@ def parse_type(t):
         raise ValueError("Type must be 's' or 'u' (have " + t + ")")
 
     return (low, high - 1)
+
 
 class _HistoryPredictor:
     def __init__(self, t, history_length):
@@ -28,11 +30,16 @@ class _HistoryPredictor:
         ret.__name__ = cls.__name__
         if len(args) or len(kwargs):
             ret.__name__ += (
-                "(" +
-                ", ".join(itertools.chain((f"{x}" for x in args), ("{k}={v}" for k, v in kwargs.items()))) +
-                ")"
+                "("
+                + ", ".join(
+                    itertools.chain(
+                        (f"{x}" for x in args), ("{k}={v}" for k, v in kwargs.items())
+                    )
+                )
+                + ")"
             )
         return ret
+
 
 class Linear(_HistoryPredictor):
     def __init__(self, t, history_length):
@@ -76,7 +83,14 @@ class LSTSQQuadratic4(_HistoryPredictor):
         super().__init__(t, 4)
 
     def predict(self):
-        return self._history[-1] + (3 * (self._history[0] - self._history[2]) + 5 * (self._history[3] - self._history[1])) // 4
+        return (
+            self._history[-1]
+            + (
+                3 * (self._history[0] - self._history[2])
+                + 5 * (self._history[3] - self._history[1])
+            )
+            // 4
+        )
 
     def __str__(self):
         return f"FourPointQuadraticPredictor()"
@@ -87,7 +101,14 @@ class LSTSQQuadratic5(_HistoryPredictor):
         super().__init__(t, 5)
 
     def predict(self):
-        return self._history[-1] + (3 * (self._history[0] - self._history[1]) + 4 * (self._history[4] - self._history[2])) // 5
+        return (
+            self._history[-1]
+            + (
+                3 * (self._history[0] - self._history[1])
+                + 4 * (self._history[4] - self._history[2])
+            )
+            // 5
+        )
 
     def __str__(self):
         return f"FivePointQuadraticPredictor()"
@@ -106,7 +127,10 @@ class GeneralizedEWMA:
         for old_derivative in self._derivatives[:-1]:
             new_derivatives.append(new_derivatives[-1] - old_derivative)
 
-        self._derivatives = [self._smoothing * old + (1 - self._smoothing) * new for old, new in zip(self._derivatives, self._derivatives)]
+        self._derivatives = [
+            self._smoothing * old + (1 - self._smoothing) * new
+            for old, new in zip(self._derivatives, self._derivatives)
+        ]
 
     def __str__(self):
         return f"GeneralizedEWMA({len(self._derivatives)}, {self._smoothing})"

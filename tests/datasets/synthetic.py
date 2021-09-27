@@ -11,6 +11,7 @@ try:
 except ImportError:
     from . import dataset
 
+
 def all_datasets(length):
     dataset_name_suffix = f", length={length})"
     currentmod = sys.modules[__name__]
@@ -25,16 +26,21 @@ def all_datasets(length):
             if "period" in inspect.signature(func).parameters:
                 for period in [100, 10000]:
                     yield dataset.Dataset(
-                        dataset_name_prefix + f', period={period}' + dataset_name_suffix,
-                        ["value"], [t],
-                        func(t, period, length)
+                        dataset_name_prefix
+                        + f", period={period}"
+                        + dataset_name_suffix,
+                        ["value"],
+                        [t],
+                        func(t, period, length),
                     )
             else:
                 yield dataset.Dataset(
                     dataset_name_prefix + dataset_name_suffix,
-                    ["value"], [t],
-                    func(t, length)
+                    ["value"],
+                    [t],
+                    func(t, length),
                 )
+
 
 def _parse_type(s):
     """ Return semi-open interval of output vaues """
@@ -50,10 +56,11 @@ def _parse_type(s):
 
     return (low, high)
 
+
 def _remap(f, input_min, input_max, x_scale, t, length):
-    """ Turn a function giving a value from <input_min, input_max> to an infinite iterator of
+    """Turn a function giving a value from <input_min, input_max> to an infinite iterator of
     integers between <0, 2**scale_bits> (signed == "u") or
-    <-2**(scale_bits - 1), 2**(scale_bits - 1) - 1> (signed == "s") """
+    <-2**(scale_bits - 1), 2**(scale_bits - 1) - 1> (signed == "s")"""
     low, high = _parse_type(t)
 
     y_scale = (high - low - 1) / (input_max - input_min)
@@ -61,24 +68,40 @@ def _remap(f, input_min, input_max, x_scale, t, length):
 
     return ([round(f(i * x_scale) * y_scale + y_offset)] for i in range(length))
 
+
 def sine(t, period, length):
     return _remap(math.sin, -1, 1, 2 * math.pi / period, t, length)
 
+
 def sawtooth(t, period, length):
-    return _remap(lambda x: math.modf(x)[0], 0, 1, 1/period, t, length)
+    return _remap(lambda x: math.modf(x)[0], 0, 1, 1 / period, t, length)
+
 
 def minor7chord(t, period, length):
-    return _remap(lambda x: math.sin(x) + math.sin(x * 1.2) + math.sin(x * 1.5) + math.sin(x * 1.8), -4, 4, 2 * math.pi / period, t, length)
+    return _remap(
+        lambda x: math.sin(x)
+        + math.sin(x * 1.2)
+        + math.sin(x * 1.5)
+        + math.sin(x * 1.8),
+        -4,
+        4,
+        2 * math.pi / period,
+        t,
+        length,
+    )
+
 
 def _random(gen, t, length):
     low, high = _parse_type(t)
     return ([int(gen.integers(low, high))] for _ in range(length))
 
+
 def _make_generator(*args):
     hasher = hashlib.sha1()
     hasher.update(repr(args).encode())
-    seed = int.from_bytes(hasher.digest(), byteorder='big')
+    seed = int.from_bytes(hasher.digest(), byteorder="big")
     return numpy.random.Generator(numpy.random.PCG64(seed))
+
 
 def random_piecewise_constant(t, period, length):
     gen = _make_generator(t, period)
@@ -90,7 +113,8 @@ def random_piecewise_constant(t, period, length):
         yield from itertools.repeat(value, segment_count)
 
         if remaining == 0:
-            break;
+            break
+
 
 def random_smooth(t, period, length):
     gen = _make_generator(t, period)
@@ -115,13 +139,16 @@ def random_smooth(t, period, length):
 
         prev = current
 
+
 def random(t, length):
     return _random(_make_generator(t), t, length)
+
 
 def count_up(t, length):
     low, high = _parse_type(t)
     scale = high - low
     return ([(i % scale) + low] for i in range(length))
+
 
 if __name__ == "__main__":
     dataset.show_content(all_datasets(length=100))

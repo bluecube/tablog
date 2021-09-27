@@ -7,6 +7,7 @@ try:
 except ImportError:
     from . import dataset
 
+
 class _CsvDataIterator:
     def __init__(self, fp, converters, data_slice):
         self._fp = fp
@@ -33,6 +34,7 @@ def _all_csv_files():
                 rel_file_path = os.path.join(rel_dirpath, filename)
                 yield (file_path, rel_file_path)
 
+
 def _parse_type(t):
     """ Return tuple of converter function and converted type """
     match = re.match(r"(?:f(\d+)\()?([us]\d\d?)\)?", t)
@@ -43,9 +45,12 @@ def _parse_type(t):
         return int, match[2]
     else:
         multiplier = float(match[1])
+
         def converter(s):
             return round(float(s) * multiplier)
+
         return converter, match[2]
+
 
 def _open_dataset(csv_path, csv_name):
     fp = open(csv_path, "r")
@@ -68,6 +73,7 @@ def all_datasets():
     for csv_path, csv_name in _all_csv_files():
         yield _open_dataset(csv_path, csv_name)
 
+
 def individual_datasets():
     for d in all_datasets():
         filename = d.data_iterator._fp.name
@@ -83,12 +89,9 @@ def individual_datasets():
                 d.name + "#" + d.field_names[i],
                 ["value"],
                 [d.field_types[i]],
-                _CsvDataIterator(
-                    fp,
-                    [d.data_iterator._converters[i]],
-                    slice(i, i + 1)
-                )
+                _CsvDataIterator(fp, [d.data_iterator._converters[i]], slice(i, i + 1)),
             )
+
 
 if __name__ == "__main__":
     print("All datasets")
