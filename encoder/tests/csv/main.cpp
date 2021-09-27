@@ -6,6 +6,7 @@
 #include "stat_encoder.hpp"
 #include "stream_encoder.hpp"
 
+#include <sstream>
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
@@ -17,6 +18,18 @@
 #include <cstdlib>
 
 using namespace tablog;
+
+#define PREDICTOR_FACTORY(PredType, ...) \
+    [](const std::string& s) { \
+        if (s == "u8") { using Type = uint8_t;        return dynamic::make_dynamic_predictor<PredType<__VA_ARGS__>>(); }\
+        else if (s == "s8") { using Type = int8_t;    return dynamic::make_dynamic_predictor<PredType<__VA_ARGS__>>(); }\
+        else if (s == "u16") { using Type = uint16_t; return dynamic::make_dynamic_predictor<PredType<__VA_ARGS__>>(); }\
+        else if (s == "s16") { using Type = int16_t;  return dynamic::make_dynamic_predictor<PredType<__VA_ARGS__>>(); }\
+        else if (s == "u32") { using Type = uint32_t; return dynamic::make_dynamic_predictor<PredType<__VA_ARGS__>>(); }\
+        else if (s == "s32") { using Type = int32_t;  return dynamic::make_dynamic_predictor<PredType<__VA_ARGS__>>(); }\
+        else if (s == "s64") { using Type = int64_t;  return dynamic::make_dynamic_predictor<PredType<__VA_ARGS__>>(); }\
+        else { throw std::runtime_error("Unsupported field type for predictor"); } \
+    }
 
 struct StreamOutput {
     void operator()(uint8_t out) {
@@ -47,12 +60,10 @@ std::vector<std::pair<std::string, std::function<dynamic::Encoder(std::ostream&)
     }
 };
 
-std::vector<std::pair<std::string, std::function<dynamic::Predictor()>>> predictorFactories = {
+std::vector<std::pair<std::string, std::function<dynamic::Predictor(const std::string&)>>> predictorFactories = {
     {
-        "linear5",
-        []() {
-            return dynamic::make_dynamic_predictor<predictors::SimpleLinear<int64_t, 5>>();
-        }
+        "linear3",
+        PREDICTOR_FACTORY(predictors::SimpleLinear, Type, 3)
     }
 };
 
@@ -82,14 +93,14 @@ void usage(const char* progName) {
     std::cout << "\nDefault predictor is " << predictorFactories.begin()->first << "\n";
 }
 
-template <typename FactoryMap, typename... Args>
-auto from_factory(const FactoryMap& factoryMap, const std::string& key, Args&& ...args) {
+template <typename FactoryMap>
+auto get_factory(const FactoryMap& factoryMap, const std::string& key) {
     if (key.empty())
-        return factoryMap.begin()->second(std::forward<Args>(args)...);
+        return factoryMap.begin()->second;
     else {
         for (const auto& item: factoryMap) {
             if (item.first == key)
-                return item.second(std::forward<Args>(args)...);
+                return item.second;
         }
         throw std::runtime_error("Key not found");
     }
@@ -99,17 +110,31 @@ dynamic::Tablog make_tablog(
     const std::string encoderStr,
     const std::string predictorStr,
     const std::string& labels,
+    const std::string& types,
     std::ostream& stream)
 {
-    auto encoder = from_factory(encoderFactories, encoderStr, stream);
-    auto predictor = from_factory(predictorFactories, predictorStr);
+    auto encoder = get_factory(encoderFactories, encoderStr)(stream);
+    auto predictorFactory = get_factory(predictorFactories, predictorStr);
 
-    uint32_t valueCount = 1;
-    for (auto c: labels)
-        if (c == ',')
-            ++valueCount;
+    std::vector<std::pair<std::string, std::string>> descriptors;
+    std::istringstream labelsStream(labels);
+    std::istringstream typesStream(types);
+    while (true) {
+        std::string label;
+        bool haveLabel = (bool)std::getline(labelsStream, label, ',');
+        std::string type;
+        bool haveType = (bool)std::getline(typesStream, type, ',');
 
-    return dynamic::Tablog(std::move(encoder), *predictor, valueCount);
+        if (haveType != haveLabel)
+            throw std::runtime_error("Non matching number of labels and types");
+
+        if (!haveLabel)
+            break;
+
+        descriptors.push_back(std::make_pair(label, type));
+    }
+
+    return dynamic::Tablog(std::move(encoder), predictorFactory, descriptors);
 }
 
 std::vector<int64_t> parse_line(const std::string& line) {
@@ -178,8 +203,10 @@ int main(int argc, const char** argv) {
 
     std::string columnLabels;
     std::getline(input, columnLabels);
+    std::string types;
+    std::getline(input, types);
 
-    auto tablog = make_tablog(encoderStr, predictorStr, columnLabels, output);
+    auto tablog = make_tablog(encoderStr, predictorStr, columnLabels, types, output);
 
     std::string lineStr;
     while(std::getline(input, lineStr))

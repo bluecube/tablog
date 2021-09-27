@@ -1,5 +1,7 @@
 #pragma once
 
+#include "util/misc.hpp"
+
 #include <cstdint>
 #include <limits>
 #include <utility>
@@ -25,6 +27,16 @@ public:
     void header(uint_fast8_t version, uint_fast8_t fieldCount) {
         number(version);
         number(fieldCount);
+    }
+
+    /// Output field header. Field headers must directly follow header, with the
+    /// same count as fieldCount in the header.
+    void field_header(const char* fieldName, bool signedType, uint_fast8_t typeSize) {
+        string(fieldName);
+        uint_fast8_t encodedType = small_int_log2(typeSize);
+        if (signedType)
+            encodedType |= signedTypeFlag;
+        output_nibble(encodedType);
     }
 
     /// Encode a predictor hit streak.
@@ -69,10 +81,10 @@ public:
             output_nibble(predictorHit);
     }
 
+private:
     /// Encode a number into nibbles with continuation bits
     template <typename T>
-    void number(T number)
-    {
+    void number(T number) {
         do {
             uint_fast8_t encoded  = (number & numberBlockMask);
             number >>= numberBlockBits;
@@ -81,7 +93,23 @@ public:
         } while (number != 0);
     }
 
-private:
+    /// Encode the string into the output as a sequence 
+    /// using a predictor that always says 'e'.
+    /// This is kind of in the middle of printable ASCII set,
+    /// biased towards the lower case. As a bonus, 'e' is the most common character.
+    /// Null string is equivalent to empty string.
+    void string(const char* str) {
+        /*if (str) {
+            ValueCompressor<uint8_t, predictors::Constant<uint8_t, 'e'>> compressor;
+            number(strlen(str));
+            while (*fieldName)
+                compressor.write(*(fieldName++), *this);
+        }
+        else
+            number((uint8_fast_t)0);*/
+        (void)str;
+    }
+
     void output_nibble(uint_fast8_t nibble) {
         buffer |= nibble << bufferBitsUsed;
         bufferBitsUsed += nibbleBits;
@@ -95,6 +123,8 @@ private:
     }
 
     static constexpr uint_fast8_t nibbleBits = 4;
+
+    static constexpr uint_fast8_t signedTypeFlag = 0x8;
 
     static constexpr uint_fast8_t predictorHit = 0x8;
 
@@ -117,4 +147,4 @@ private:
     static constexpr uint_fast8_t bufferSizeBits = 8;
 };
 
-};
+}

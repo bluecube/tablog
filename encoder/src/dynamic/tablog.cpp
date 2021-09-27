@@ -4,15 +4,26 @@
 
 namespace tablog::dynamic {
 
-Tablog::Tablog(dynamic::Encoder encoder, const dynamic::PredictorInterface& predictor, uint32_t valueCount)
+Tablog::Tablog(
+    dynamic::Encoder encoder,
+    std::function<dynamic::Predictor(const std::string& t)> predictorFactory,
+    std::vector<std::pair<std::string, std::string>> fieldDescriptors
+)
   : encoder(std::move(encoder)) {
 
-    // All value encoders get a fresh instance of the predictor.
-    for (size_t i = 0; i < valueCount; ++i)
-        valueCompressors.emplace_back(predictor.make_new());
+    this->encoder->header(formatVersion, fieldDescriptors.size());
 
-    this->encoder->header(formatVersion, valueCount);
-    // must be called through this, because the argument is already moved away from
+    // All value encoders get a fresh instance of the predictor.
+    for (const auto& d: fieldDescriptors) {
+        auto predictor = predictorFactory(d.second);
+        this->encoder->field_header(
+            d.first.c_str(),
+            predictor->t_is_signed(),
+            predictor->sizeof_t()
+        );
+        valueCompressors.emplace_back(std::move(predictor));
+    }
+
 }
 
 void Tablog::write(const std::vector<ValueType>& values) {

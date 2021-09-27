@@ -24,6 +24,9 @@ public:
     /// Write the archive header
     virtual void header(uint_fast8_t version, uint_fast8_t fieldCount) = 0;
 
+    /// Encode header of an individual field.
+    virtual void field_header(const char* fieldName, bool signedType, uint_fast8_t typeSize) = 0;
+
     /// Encode a predictor hit streak.
     /// Streak length must be greater than 0 and less or equal than maxHitStreakLength.
     virtual void predictor_hit_streak(uint_fast8_t streakLength) = 0;
@@ -52,6 +55,10 @@ public:
 
     void header(uint_fast8_t version, uint_fast8_t fieldCount) override {
         encoder.header(version, fieldCount);
+    }
+
+    void field_header(const char* fieldName, bool signedType, uint_fast8_t typeSize) override {
+        encoder.field_header(fieldName, signedType, typeSize);
     }
 
     void predictor_hit_streak(uint_fast8_t streakLength) override {

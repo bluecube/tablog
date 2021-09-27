@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <vector>
 #include <memory>
+#include <functional>
 
 namespace tablog::dynamic {
 
@@ -18,7 +19,11 @@ public:
     using ValueType = int64_t;
     static constexpr uint_fast16_t formatVersion = 1;
 
-    Tablog(dynamic::Encoder encoder, const dynamic::PredictorInterface& predictor, uint32_t valueCount);
+    Tablog(
+        dynamic::Encoder encoder,
+        std::function<dynamic::Predictor(const std::string& t)> predictorFactory,
+        std::vector<std::pair<std::string, std::string>> fieldDescriptors
+    );
     ~Tablog() { close(); }
 
     void write(const std::vector<ValueType>& values);

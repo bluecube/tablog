@@ -7,7 +7,15 @@ void JsonEncoder::header(uint_fast8_t version, uint_fast8_t fieldCount) {
         "{\n" <<
         "  \"version\": " << static_cast<uint64_t>(version) << ",\n" <<
         "  \"field_count\": " << static_cast<uint64_t>(fieldCount) << ",\n" <<
-        "  \"records\": [\n";
+        "  \"field_descriptors\": [\n";
+}
+
+void JsonEncoder::field_header(const char* fieldName, bool signedType, uint_fast8_t typeSize) {
+    stream <<
+        "    {\n" <<
+        "      \"name\": \"" << fieldName << ",\n" <<
+        "      \"type\": \"" << (signedType ? "s" : "u") << typeSize << "\"\n" <<
+        "    }";
 }
 
 void JsonEncoder::end_of_stream() {
@@ -18,25 +26,30 @@ void JsonEncoder::end_of_stream() {
 
 void JsonEncoder::predictor_hit_streak(uint_fast8_t streakLength) {
     if (!firstRecord)
-        stream << ",\n";
+        finalize_field_headers();
 
     stream <<
         "    {\n" <<
         "      \"error\": 0,\n" <<
         "      \"streak_length\": " << static_cast<uint64_t>(streakLength) << "\n" <<
         "    }";
-    firstRecord = false;
 }
 
 void JsonEncoder::predictor_miss(bool predictionHigh, uint64_t absErrorToEncode) {
     if (!firstRecord)
-        stream << ",\n";
+        finalize_field_headers();
 
     stream <<
         "    {\n" <<
         "      \"error\": " << (predictionHigh ? "" : "-") << absErrorToEncode << ",\n" <<
         "      \"streak_length\": 1\n" <<
         "    }";
+}
+
+void JsonEncoder::finalize_field_headers() {
+    stream <<
+    "  ],\n" <<
+    "  \"records\": [\n";
     firstRecord = false;
 }
 

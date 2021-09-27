@@ -22,6 +22,10 @@ void StatEncoder::header(uint_fast8_t version, uint_fast8_t fieldCount) {
     streamEncoder.header(version, fieldCount);
 }
 
+void StatEncoder::field_header(const char* fieldName, bool signedType, uint_fast8_t typeSize) {
+    streamEncoder.field_header(fieldName, signedType, typeSize);
+}
+
 void StatEncoder::end_of_stream() {
     streamEncoder.end_of_stream();
     for (ssize_t i = 0; i < static_cast<ssize_t>(maxMissDistance); ++i) {
