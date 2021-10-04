@@ -123,6 +123,6 @@ evaluate_predictors(
     predictors.LSTSQQuadratic3,
     predictors.LSTSQQuadratic4,
     predictors.LSTSQQuadratic5,
-    # predictors.GeneralizedEWMA(1, 0.9),
-    # predictors.GeneralizedEWMA(3, 0.9),
+    predictors.GeneralizedEWMA.factory(1, 0.9),
+    predictors.GeneralizedEWMA.factory(3, 0.9),
 )

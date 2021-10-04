@@ -16,14 +16,7 @@ def parse_type(t):
     return (low, high - 1)
 
 
-class _HistoryPredictor:
-    def __init__(self, t, history_length):
-        self._history = [0] * history_length
-        (self._min, self._max) = parse_type(t)
-
-    def feed(self, value):
-        self._history = self._history[1:] + [value]
-
+class _Predictor:
     @classmethod
     def factory(cls, *args, **kwargs):
         ret = lambda t: cls(t, *args, **kwargs)
@@ -39,6 +32,15 @@ class _HistoryPredictor:
                 + ")"
             )
         return ret
+
+
+class _HistoryPredictor(_Predictor):
+    def __init__(self, t, history_length):
+        self._history = [0] * history_length
+        (self._min, self._max) = parse_type(t)
+
+    def feed(self, value):
+        self._history = self._history[1:] + [value]
 
 
 class Linear(_HistoryPredictor):
@@ -114,7 +116,7 @@ class LSTSQQuadratic5(_HistoryPredictor):
         return f"FivePointQuadraticPredictor()"
 
 
-class GeneralizedEWMA:
+class GeneralizedEWMA(_Predictor):
     def __init__(self, t, degree, smoothing):
         self._derivatives = [0] * degree
         self._smoothing = smoothing
