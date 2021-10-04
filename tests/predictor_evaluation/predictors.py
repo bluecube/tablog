@@ -7,6 +7,16 @@ import itertools
 from datasets import individual_datasets
 from decoder import predictors
 
+def encoded_length(abs_error):
+    """ Encoded bit length of the error, based on the adaptive rice coding
+    with no runs and sign bit. """
+    if abs_error == 0:
+        return 1 # Just hit flag
+    else:
+        raw_binary = math.floor(math.log2(abs_error)) + 1
+        return raw_binary + 4 # miss flag, sign bit, 2 extra bits of overhead for number encoding
+
+
 
 def evaluate_predictor_dataset(predictor, dataset):
     skip_first_avg = 10
@@ -17,11 +27,12 @@ def evaluate_predictor_dataset(predictor, dataset):
         x = x[0]
         error = abs(x - predictor.predict())
         count += 1
-        sum_bits += math.floor(math.log2(error + 1)) + 1
+        sum_bits += encoded_length(error)
         if count > skip_first_avg:
             sum_abs_error += error
         predictor.feed(x)
 
+    # Replace the skipped initial values in the sum with the average
     sum_abs_error += skip_first_avg * sum_abs_error / (count - skip_first_avg)
 
     return sum_bits, sum_abs_error, count
