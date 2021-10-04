@@ -9,17 +9,22 @@ from decoder import predictors
 
 
 def evaluate_predictor_dataset(predictor, dataset):
+    skip_first_avg = 10
     count = 0
-    score = 0
-    type_bits = int(dataset.field_types[0][1:])
+    sum_bits = 0
+    sum_abs_error = 0
     for x in dataset.data_iterator:
         x = x[0]
         error = abs(x - predictor.predict())
         count += 1
-        score += math.floor(math.log2(abs(error) + 1)) + 1
+        sum_bits += math.floor(math.log2(error + 1)) + 1
+        if count > skip_first_avg:
+            sum_abs_error += error
         predictor.feed(x)
 
-    return score, count
+    sum_abs_error += skip_first_avg * sum_abs_error / (count - skip_first_avg)
+
+    return sum_bits, sum_abs_error, count
 
 
 def open_datasets():
@@ -37,10 +42,9 @@ def evaluate_predictors(*predictor_factories):
 
         for dataset in open_datasets():
             assert len(dataset.field_types) == 1
-            score, count = evaluate_predictor_dataset(
+            results[dataset.name, predictor] = evaluate_predictor_dataset(
                 predictor_factory(dataset.field_types[0]), dataset
             )
-            results[dataset.name, predictor] = (score, count)
 
     table_header = ["Dataset"]
     table_header.extend(predictors)
@@ -49,25 +53,29 @@ def evaluate_predictors(*predictor_factories):
     table_data = []
     for dataset_name in datasets:
         row = [dataset_name]
-        total_score = 0
+        total_sum_bits = 0
+        total_sum_abs_error = 0
         total_count = 0
         for predictor_name in predictors:
-            score, count = results[dataset_name, predictor_name]
-            total_score += score
+            sum_bits, sum_abs_error, count = results[dataset_name, predictor_name]
+            total_sum_bits += sum_bits
+            total_sum_abs_error += sum_abs_error
             total_count += count
-            row.append(f"{score / count:.1f}")
-        row.append(f"{total_score / total_count:.1f}")
+            row.append(f"{sum_abs_error / count:.1f}; {sum_bits / count:.1f}b")
+        row.append(f"{total_sum_abs_error / total_count:.1f}; {total_sum_bits / total_count:.1f}b")
         table_data.append(row)
 
     row = ["Average"]
     for predictor_name in predictors:
-        total_score = 0
+        total_sum_bits = 0
+        total_sum_abs_error = 0
         total_count = 0
         for dataset_name in datasets:
-            score, count = results[dataset_name, predictor_name]
-            total_score += score
+            sum_bits, sum_abs_error, count = results[dataset_name, predictor_name]
+            total_sum_bits += sum_bits
+            total_sum_abs_error += sum_abs_error
             total_count += count
-        row.append(f"{total_score / total_count:.1f}")
+        row.append(f"{total_sum_abs_error / total_count:.1f}; {total_sum_bits / total_count:.1f}b")
     row.append("")
     table_data.append(row)
 
