@@ -3,6 +3,8 @@
 import math
 import operator
 import itertools
+import gzip
+import io
 
 from datasets import individual_datasets
 from decoder import predictors
@@ -15,7 +17,6 @@ def encoded_length(abs_error):
     else:
         raw_binary = math.floor(math.log2(abs_error)) + 1
         return raw_binary + 4 # miss flag, sign bit, 2 extra bits of overhead for number encoding
-
 
 
 def evaluate_predictor_dataset(predictor, dataset):
@@ -38,6 +39,24 @@ def evaluate_predictor_dataset(predictor, dataset):
     return sum_bits, sum_abs_error, count
 
 
+def evaluate_gzip_dataset(dataset):
+    class FakeWriter(io.IOBase):
+        def __init__(self):
+            self.count = 0
+        def write(self, b):
+            self.count += len(b)
+
+    byte_size = int(dataset.field_types[0][1:]) // 8
+    signed = dataset.field_types[0][0] == "s"
+    count = 0
+    fake = FakeWriter()
+    with gzip.open(fake, "wb") as gz:
+        for row in dataset:
+            gz.write(row[0].to_bytes(byte_size, "big", signed=signed))
+            count += 1
+    return (fake.count * 8, count)
+
+
 def open_datasets():
     yield from individual_datasets(include_synthetic=False)
 
@@ -57,23 +76,22 @@ def evaluate_predictors(*predictor_factories):
                 predictor_factory(dataset.field_types[0]), dataset
             )
 
+    gzip_results = {}
+    for dataset in open_datasets():
+        gzip_results[dataset.name] = evaluate_gzip_dataset(dataset)
+
     table_header = ["Dataset"]
     table_header.extend(predictors)
-    table_header.append("Average")
+    table_header.append("Gzip")
 
     table_data = []
     for dataset_name in datasets:
         row = [dataset_name]
-        total_sum_bits = 0
-        total_sum_abs_error = 0
-        total_count = 0
         for predictor_name in predictors:
             sum_bits, sum_abs_error, count = results[dataset_name, predictor_name]
-            total_sum_bits += sum_bits
-            total_sum_abs_error += sum_abs_error
-            total_count += count
             row.append(f"{sum_abs_error / count:.1f}; {sum_bits / count:.1f}b")
         row.append(f"{total_sum_abs_error / total_count:.1f}; {total_sum_bits / total_count:.1f}b")
+        row.append(f"{gzip_results[dataset_name][0] / gzip_results[dataset_name][1]:.1f}b")
         table_data.append(row)
 
     row = ["Average"]
@@ -87,7 +105,12 @@ def evaluate_predictors(*predictor_factories):
             total_sum_abs_error += sum_abs_error
             total_count += count
         row.append(f"{total_sum_abs_error / total_count:.1f}; {total_sum_bits / total_count:.1f}b")
-    row.append("")
+    gzip_sum_bits = 0
+    gzip_count = 0
+    for dataset_name in datasets:
+        gzip_sum_bits += gzip_results[dataset_name][0]
+        gzip_count += gzip_results[dataset_name][1]
+    row.append(f"{gzip_sum_bits / gzip_count:.1f}b")
     table_data.append(row)
 
     column_widths = [len(x) for x in table_header]
