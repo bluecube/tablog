@@ -139,14 +139,11 @@ def evaluate_predictors(*predictor_factories):
 
 evaluate_predictors(
     predictors.Linear.factory(1),
-    predictors.Linear.factory(2),
     predictors.Linear.factory(3),
-    predictors.Linear.factory(4),
     predictors.Linear.factory(5),
     predictors.Linear.factory(10),
-    predictors.LSTSQQuadratic3,
     predictors.LSTSQQuadratic4,
     predictors.LSTSQQuadratic5,
-    predictors.GeneralizedEWMA.factory(1, 0.9),
-    predictors.GeneralizedEWMA.factory(3, 0.9),
+    #predictors.GeneralizedEWMA.factory(1, 0.9),
+    #predictors.GeneralizedEWMA.factory(3, 0.9),
 )
