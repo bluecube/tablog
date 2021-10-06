@@ -1,6 +1,5 @@
 import itertools
 
-
 def parse_type(t):
     """ Return closed interval of values """
     scale_bits = int(t[1:])
@@ -136,3 +135,39 @@ class GeneralizedEWMA(_Predictor):
 
     def __str__(self):
         return f"GeneralizedEWMA({len(self._derivatives)}, {self._smoothing})"
+
+
+class SmoothDeriv(_HistoryPredictor):
+    def __init__(self, t, smoothing_power):
+        super().__init__(t, 1)
+        self._derivative = 0
+        self._smoothing = smoothing_power
+
+    def _rhs(self, v):
+        if v < 0:
+            return -((-v) >> self._smoothing)
+        else:
+            return v >> self._smoothing
+
+    def predict(self):
+        return self._history[0] + self._rhs(self._derivative)
+
+    def feed(self, value):
+        new_derivative = value - self._history[0]
+        self._derivative += (new_derivative - self._rhs(self._derivative))
+        super().feed(value)
+
+
+class SmoothDeriv2(_HistoryPredictor):
+    def __init__(self, t, smoothing_power):
+        super().__init__(t, 2)
+        self._second_derivative = 0
+        self._smoothing = smoothing_power
+
+    def predict(self):
+        return 2 * self._history[1] - self._history[0] + self._second_derivative
+
+    def feed(self, value):
+        new_second_derivative = value - 2 * self._history[1] + self._history[0]
+        self._second_derivative += (new_second_derivative - self._second_derivative) >> self._smoothing
+        super().feed(value)

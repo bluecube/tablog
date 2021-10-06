@@ -58,7 +58,7 @@ def evaluate_gzip_dataset(dataset):
 
 
 def open_datasets():
-    yield from individual_datasets(include_synthetic=False)
+    yield from individual_datasets(include_synthetic=True)
 
 
 def evaluate_predictors(*predictor_factories):
@@ -146,4 +146,12 @@ evaluate_predictors(
     predictors.LSTSQQuadratic5,
     #predictors.GeneralizedEWMA.factory(1, 0.9),
     #predictors.GeneralizedEWMA.factory(3, 0.9),
+    predictors.SmoothDeriv.factory(1),
+    predictors.SmoothDeriv.factory(2),
+    predictors.SmoothDeriv.factory(3),
+    predictors.SmoothDeriv.factory(9),
+    predictors.SmoothDeriv2.factory(1),
+    predictors.SmoothDeriv2.factory(2),
+    predictors.SmoothDeriv2.factory(3),
+    predictors.SmoothDeriv2.factory(4),
 )
