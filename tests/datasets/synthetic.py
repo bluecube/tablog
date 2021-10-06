@@ -64,9 +64,9 @@ def _remap(f, input_min, input_max, x_scale, t, length):
     low, high = _parse_type(t)
 
     y_scale = (high - low - 1) / (input_max - input_min)
-    y_offset = input_min * y_scale + low
+    y_offset = low - input_min * y_scale
 
-    return ([round(f(i * x_scale) * y_scale + y_offset)] for i in range(length))
+    return ([max(low, min(round(f(i * x_scale) * y_scale + y_offset), high - 1))] for i in range(length))
 
 
 def sine(t, period, length):
