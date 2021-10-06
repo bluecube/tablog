@@ -7,7 +7,10 @@ class Dataset:
     name: str
     field_names: list[str]
     field_types: list[str]
-    data_iterator: collections.abc.Iterator[list[int]]
+    iter_callable: collections.abc.Callable[[], collections.abc.Iterator[list[int]]]
+
+    def __iter__(self):
+        return self.iter_callable()
 
 
 def show_content(datasets):

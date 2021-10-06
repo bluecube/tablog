@@ -23,7 +23,7 @@ def evaluate_predictor_dataset(predictor, dataset):
     count = 0
     sum_bits = 0
     sum_abs_error = 0
-    for x in dataset.data_iterator:
+    for x in dataset:
         x = x[0]
         error = abs(x - predictor.predict())
         count += 1

@@ -8,9 +8,25 @@ except ImportError:
     from . import dataset
 
 
+class _CsvDataIterCallable:
+    def __init__(self, file_path, converters, data_slice):
+        self._file_path = file_path
+        self._converters = converters
+        self._slice = data_slice
+
+    def __call__(self):
+        return _CsvDataIterator(self._file_path, self._converters, self._slice)
+
+    def sliced(self, i):
+        s = slice(i, i + 1)
+        return _CsvDataIterCallable(self._file_path, self._converters, s)
+
+
 class _CsvDataIterator:
-    def __init__(self, fp, converters, data_slice):
-        self._fp = fp
+    def __init__(self, file_path, converters, data_slice):
+        self._fp = open(file_path)
+        next(self._fp)
+        next(self._fp)
         self._converters = converters
         self._slice = data_slice
 
@@ -19,8 +35,9 @@ class _CsvDataIterator:
 
     def __next__(self):
         raw_fields = next(self._fp).split(",")
-        sliced = raw_fields[self._slice]
-        converted = [converter(x) for converter, x in zip(self._converters, sliced)]
+        sliced_converters = self._converters[self._slice]
+        sliced_fields = raw_fields[self._slice]
+        converted = [converter(x) for converter, x in zip(sliced_converters, sliced_fields)]
         return converted
 
 
@@ -53,20 +70,19 @@ def _parse_type(t):
 
 
 def _open_dataset(csv_path, csv_name):
-    fp = open(csv_path, "r")
+    with open(csv_path, "r") as fp:
+        field_names = [x.strip() for x in next(fp).split(",")]
 
-    field_names = [x.strip() for x in next(fp).split(",")]
+        field_types = []
+        converters = []
+        for t in [x.strip() for x in next(fp).split(",")]:
+            converter, converted_t = _parse_type(t)
+            field_types.append(converted_t)
+            converters.append(converter)
 
-    field_types = []
-    converters = []
-    for t in [x.strip() for x in next(fp).split(",")]:
-        converter, converted_t = _parse_type(t)
-        field_types.append(converted_t)
-        converters.append(converter)
+    iter_callable = _CsvDataIterCallable(csv_path, converters, slice(None))
 
-    data_iterator = _CsvDataIterator(fp, converters, slice(None))
-
-    return dataset.Dataset(csv_name, field_names, field_types, data_iterator)
+    return dataset.Dataset(csv_name, field_names, field_types, iter_callable)
 
 
 def all_datasets():
@@ -76,20 +92,12 @@ def all_datasets():
 
 def individual_datasets():
     for d in all_datasets():
-        filename = d.data_iterator._fp.name
-
         for i in range(len(d.field_names)):
-            # Duplicate the file pointer
-            fp = open(filename)
-            # Skip the header lines
-            next(fp)
-            next(fp)
-
             yield dataset.Dataset(
                 d.name + "#" + d.field_names[i],
                 ["value"],
                 [d.field_types[i]],
-                _CsvDataIterator(fp, [d.data_iterator._converters[i]], slice(i, i + 1)),
+                d.iter_callable.sliced(i),
             )
 
 

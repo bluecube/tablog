@@ -31,14 +31,14 @@ def all_datasets(length):
                         + dataset_name_suffix,
                         ["value"],
                         [t],
-                        func(t, period, length),
+                        lambda: func(t, period, length),
                     )
             else:
                 yield dataset.Dataset(
                     dataset_name_prefix + dataset_name_suffix,
                     ["value"],
                     [t],
-                    func(t, length),
+                    lambda: func(t, length),
                 )
 
 
