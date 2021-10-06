@@ -27,7 +27,7 @@ def all_datasets(length):
                 for period in [100, 10000]:
                     yield dataset.Dataset(
                         dataset_name_prefix
-                        + f", period={period}"
+                        + f", {period}"
                         + dataset_name_suffix,
                         ["value"],
                         [t],
@@ -103,7 +103,7 @@ def _make_generator(*args):
     return numpy.random.Generator(numpy.random.PCG64(seed))
 
 
-def random_piecewise_constant(t, period, length):
+def random_step(t, period, length):
     gen = _make_generator(t, period)
     remaining = length
     for value in _random(gen, t, length):
