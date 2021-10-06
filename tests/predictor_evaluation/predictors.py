@@ -89,8 +89,8 @@ def evaluate_predictors(*predictor_factories):
         row = [dataset_name]
         for predictor_name in predictors:
             sum_bits, sum_abs_error, count = results[dataset_name, predictor_name]
-            row.append(f"{sum_abs_error / count:.1f}; {sum_bits / count:.1f}b")
-        row.append(f"{total_sum_abs_error / total_count:.1f}; {total_sum_bits / total_count:.1f}b")
+            #row.append(f"{sum_abs_error / count:.1f}; {sum_bits / count:.1f}b")
+            row.append(f"{sum_bits / count:.1f}b")
         row.append(f"{gzip_results[dataset_name][0] / gzip_results[dataset_name][1]:.1f}b")
         table_data.append(row)
 
@@ -104,7 +104,8 @@ def evaluate_predictors(*predictor_factories):
             total_sum_bits += sum_bits
             total_sum_abs_error += sum_abs_error
             total_count += count
-        row.append(f"{total_sum_abs_error / total_count:.1f}; {total_sum_bits / total_count:.1f}b")
+        #row.append(f"{total_sum_abs_error / total_count:.1f}; {total_sum_bits / total_count:.1f}b")
+        row.append(f"{total_sum_bits / total_count:.1f}b")
     gzip_sum_bits = 0
     gzip_count = 0
     for dataset_name in datasets:
