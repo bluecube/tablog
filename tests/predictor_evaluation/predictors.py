@@ -34,7 +34,7 @@ def evaluate_predictor_dataset(predictor, dataset):
         predictor.feed(x)
 
     # Replace the skipped initial values in the sum with the average
-    sum_abs_error += skip_first_avg * sum_abs_error / (count - skip_first_avg)
+    #sum_abs_error += skip_first_avg * sum_abs_error / (count - skip_first_avg)
 
     return sum_bits, sum_abs_error, count
 
@@ -58,7 +58,7 @@ def evaluate_gzip_dataset(dataset):
 
 
 def open_datasets():
-    yield from individual_datasets(include_synthetic=True)
+    yield from individual_datasets(include_synthetic=False)
 
 
 def evaluate_predictors(*predictor_factories):
@@ -144,14 +144,16 @@ evaluate_predictors(
     predictors.Linear.factory(10),
     predictors.LSTSQQuadratic4,
     predictors.LSTSQQuadratic5,
-    #predictors.GeneralizedEWMA.factory(1, 0.9),
-    #predictors.GeneralizedEWMA.factory(3, 0.9),
+    predictors.DoubleExponential.factory(1, 0),
+    predictors.DoubleExponential.factory(1, 1),
+    predictors.DoubleExponential.factory(1, 2),
+    predictors.DoubleExponential.factory(2, 0),
+    predictors.DoubleExponential.factory(2, 1),
+    predictors.DoubleExponential.factory(2, 2),
     predictors.SmoothDeriv.factory(1),
     predictors.SmoothDeriv.factory(2),
     predictors.SmoothDeriv.factory(3),
-    predictors.SmoothDeriv.factory(9),
     predictors.SmoothDeriv2.factory(1),
     predictors.SmoothDeriv2.factory(2),
     predictors.SmoothDeriv2.factory(3),
-    predictors.SmoothDeriv2.factory(4),
 )

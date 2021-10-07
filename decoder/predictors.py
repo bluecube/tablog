@@ -115,23 +115,23 @@ class LSTSQQuadratic5(_HistoryPredictor):
         return f"FivePointQuadraticPredictor()"
 
 
-class GeneralizedEWMA(_Predictor):
-    def __init__(self, t, degree, smoothing):
-        self._derivatives = [0] * degree
-        self._smoothing = smoothing
+class DoubleExponential(_Predictor):
+    def __init__(self, t, smoothing1, smoothing2):
+        self._smoothing1 = smoothing1
+        self._smoothing2 = smoothing2
+        self._v = 0
+        self._d = 0
 
     def predict(self):
-        return sum(self._derivatives)
+        return self._v + self._d
 
     def feed(self, value):
-        new_derivatives = [value]
-        for old_derivative in self._derivatives[:-1]:
-            new_derivatives.append(new_derivatives[-1] - old_derivative)
+        #self._v = s1 * value + (1 - s1) * (self._v + self._d)
+        #self._d = s2 * (self._v - old_v) + (1 - s2) * self_d
 
-        self._derivatives = [
-            self._smoothing * old + (1 - self._smoothing) * new
-            for old, new in zip(self._derivatives, self._derivatives)
-        ]
+        v_change = self._d + (value - (self._v + self._d)) >> self._smoothing1
+        self._v += v_change
+        self._d += (v_change - self._d) >> self._smoothing2
 
     def __str__(self):
         return f"GeneralizedEWMA({len(self._derivatives)}, {self._smoothing})"
