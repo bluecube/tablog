@@ -143,6 +143,7 @@ def evaluate_predictors(*predictor_factories):
 
 
 evaluate_predictors(
+    predictors.Linear12Adapt,
     predictors.Linear.factory(1),
     predictors.Linear.factory(3),
     predictors.Linear.factory(5),

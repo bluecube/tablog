@@ -176,3 +176,36 @@ class SmoothDeriv2(_HistoryPredictor):
         new_second_derivative = value - 2 * self._history[1] + self._history[0]
         self._second_derivative += (new_second_derivative - self._second_derivative) >> self._smoothing
         super().feed(value)
+
+
+class Linear12Adapt(_HistoryPredictor):
+    def __init__(self, t):
+        super().__init__(t, 2)
+        self._selector = 0 # >= 0 -> predict zero derivative, < 0 -> predict constant derivative
+        self._selector_max = 128
+
+    def predict_and_feed(self, new_value):
+
+        if self._history[0] == self._history[1]:
+            prediction = self._history[1]
+        else:
+            prediction1 = self._history[1]
+            prediction2_change = self._history[1] - self._history[0]
+            prediction2 = max(self._min, min(prediction1 + prediction2_change, self._max))
+
+            if self._selector >= 0:
+                prediction = prediction1
+            else:
+                prediction = prediction2
+
+            error1 = prediction1 - new_value
+            error2 = prediction2 - new_value
+
+            if abs(error1) < abs(error2):
+                self._selector = min(self._selector + 1, self._selector_max - 1)
+            else:
+                self._selector = max(self._selector - 1, -self._selector_max)
+
+        super().feed(new_value)
+
+        return prediction
