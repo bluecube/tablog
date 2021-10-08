@@ -87,11 +87,17 @@ def evaluate_predictors(*predictor_factories):
     table_data = []
     for dataset_name in datasets:
         row = [dataset_name]
+        best_predictor_length = min(
+            results[dataset_name, predictor_name][0]
+            for predictor_name in predictors
+        )
         for predictor_name in predictors:
             sum_bits, sum_abs_error, count = results[dataset_name, predictor_name]
             #row.append(f"{sum_abs_error / count:.1f}; {sum_bits / count:.1f}b")
-            row.append(f"{sum_bits / count:.1f}b")
-        row.append(f"{gzip_results[dataset_name][0] / gzip_results[dataset_name][1]:.1f}b")
+            percent_to_best = round(sum_bits * 100 / best_predictor_length) - 100
+            to_best = "👍" if percent_to_best == 0 else f"(+{percent_to_best}%)"
+            row.append(f"{sum_bits / count:.2f}b {to_best}")
+        row.append(f"{gzip_results[dataset_name][0] / gzip_results[dataset_name][1]:.2f}b")
         table_data.append(row)
 
     row = ["Average"]
@@ -105,13 +111,13 @@ def evaluate_predictors(*predictor_factories):
             total_sum_abs_error += sum_abs_error
             total_count += count
         #row.append(f"{total_sum_abs_error / total_count:.1f}; {total_sum_bits / total_count:.1f}b")
-        row.append(f"{total_sum_bits / total_count:.1f}b")
+        row.append(f"{total_sum_bits / total_count:.2f}b")
     gzip_sum_bits = 0
     gzip_count = 0
     for dataset_name in datasets:
         gzip_sum_bits += gzip_results[dataset_name][0]
         gzip_count += gzip_results[dataset_name][1]
-    row.append(f"{gzip_sum_bits / gzip_count:.1f}b")
+    row.append(f"{gzip_sum_bits / gzip_count:.2f}b")
     table_data.append(row)
 
     column_widths = [len(x) for x in table_header]
