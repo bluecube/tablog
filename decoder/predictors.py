@@ -32,6 +32,11 @@ class _Predictor:
             )
         return ret
 
+    def predict_and_feed(self, value):
+        ret = self.predict()
+        self.feed(value)
+        return ret
+
 
 class _HistoryPredictor(_Predictor):
     def __init__(self, t, history_length):

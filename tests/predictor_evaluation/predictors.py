@@ -26,12 +26,11 @@ def evaluate_predictor_dataset(predictor, dataset):
     sum_abs_error = 0
     for x in dataset:
         x = x[0]
-        error = abs(x - predictor.predict())
+        error = abs(x - predictor.predict_and_feed(x))
         count += 1
         sum_bits += encoded_length(error)
         if count > skip_first_avg:
             sum_abs_error += error
-        predictor.feed(x)
 
     # Replace the skipped initial values in the sum with the average
     #sum_abs_error += skip_first_avg * sum_abs_error / (count - skip_first_avg)
