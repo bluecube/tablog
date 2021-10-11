@@ -43,20 +43,20 @@ constexpr std::pair<AbsDiffType<T>, bool> abs_diff(T a, T b) {
 /// @param divisor distance between sampled values. Must be >= 2
 template <typename T, T divisor=2>
 constexpr T extrapolate(T first, T last) noexcept {
-  static_assert(divisor >= 2);
-  T ret;
-  auto [difference, decreasing] = abs_diff(first, last);
-  auto change = static_cast<T>(difference / divisor);
-  if (decreasing) {
-      bool overflow = __builtin_sub_overflow(last, change, &ret);
-      if (overflow)
-        return std::numeric_limits<T>::min();
-  } else {
-      bool overflow = __builtin_add_overflow(last, change, &ret);
-      if (overflow)
-        return std::numeric_limits<T>::max();
-  }
-  return ret;
+    static_assert(divisor >= 2);
+    T ret;
+    auto [difference, decreasing] = abs_diff(first, last);
+    auto change = static_cast<T>(difference / divisor);
+    if (decreasing) {
+        bool overflow = __builtin_sub_overflow(last, change, &ret);
+        if (overflow)
+          return std::numeric_limits<T>::min();
+    } else {
+        bool overflow = __builtin_add_overflow(last, change, &ret);
+        if (overflow)
+          return std::numeric_limits<T>::max();
+    }
+    return ret;
 }
 
 /// Calculate floor(log2(v)) for values between 1 and 9 (inclusive).
