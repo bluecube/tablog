@@ -37,7 +37,7 @@ def evaluate_predictor_dataset(predictor, dataset):
     return sum_bits, sum_abs_error, count
 
 
-def evaluate_gzip_dataset(dataset):
+def evaluate_gzip_dataset(dataset, diff):
     class FakeWriter(io.IOBase):
         def __init__(self):
             self.count = 0
@@ -49,9 +49,17 @@ def evaluate_gzip_dataset(dataset):
     count = 0
     fake = FakeWriter()
     with gzip.open(fake, "wb") as gz:
-        for row in dataset:
-            gz.write(row[0].to_bytes(byte_size, "big", signed=signed))
-            count += 1
+        if diff:
+            last_value = None
+            for row in dataset:
+                if last_value is not None:
+                    gz.write((row[0] - last_value).to_bytes(byte_size + 1, "big", signed=True))
+                    count += 1
+                last_value = row[0]
+        else:
+            for row in dataset:
+                gz.write(row[0].to_bytes(byte_size, "big", signed=signed))
+                count += 1
     return (fake.count * 8, 0, count)
 
 
@@ -84,8 +92,10 @@ def evaluate_predictors(*predictor_factories):
             )
 
     predictors.append("Gzip")
+    predictors.append("Gzip diff")
     for dataset in open_datasets():
-        results[dataset.name, "Gzip"] = evaluate_gzip_dataset(dataset)
+        results[dataset.name, "Gzip"] = evaluate_gzip_dataset(dataset, False)
+        results[dataset.name, "Gzip diff"] = evaluate_gzip_dataset(dataset, True)
 
     ranking_scores = {}
     for dataset_name in datasets:
@@ -109,7 +119,7 @@ def evaluate_predictors(*predictor_factories):
         best_predictor_length = min(
             results[dataset_name, predictor_name][0]
             for predictor_name in predictors
-            if predictor_name != "Gzip"
+            if "Gzip" not in predictor_name
         )
         for predictor_name in predictors:
             sum_bits, sum_abs_error, count = results[dataset_name, predictor_name]
