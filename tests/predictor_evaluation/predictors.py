@@ -60,6 +60,15 @@ def open_datasets():
     yield from individual_datasets(include_synthetic=False)
 
 
+def ranking(values):
+    decorated = [(v, i) for i, v in enumerate(values)]
+    decorated.sort()
+    ret = [None] * len(decorated)
+    for i, (_, j) in enumerate(decorated):
+        ret[j] = i
+    return ret
+
+
 def evaluate_predictors(*predictor_factories):
     results = {}
     predictors = []
@@ -78,6 +87,19 @@ def evaluate_predictors(*predictor_factories):
     predictors.append("Gzip")
     for dataset in open_datasets():
         results[dataset.name, "Gzip"] = evaluate_gzip_dataset(dataset)
+
+    ranking_scores = {}
+    for dataset_name in datasets:
+        r = ranking(
+            results[dataset_name, predictor_name][0] / results[dataset_name, predictor_name][2]
+            for predictor_name in predictors
+        )
+        for predictor_name, v in zip(predictors, r):
+            if predictor_name in ranking_scores:
+                ranking_scores[predictor_name] = ranking_scores[predictor_name] + v
+            else:
+                ranking_scores[predictor_name] = v
+
 
     table_header = ["Dataset"]
     table_header.extend(predictors)
@@ -121,6 +143,12 @@ def evaluate_predictors(*predictor_factories):
         #row.append(f"{total_sum_abs_error / total_count:.1f}; {total_sum_bits / total_count:.1f}b")
         row.append(f"{total_sum_bits / len(datasets):.2f}b")
     table_data.append(row)
+
+    row = ["Ranking score"]
+    for predictor_name in predictors:
+        row.append(f"{ranking_scores[predictor_name]}")
+    table_data.append(row)
+
     column_widths = [len(x) for x in table_header]
     for row in table_data:
         assert len(column_widths) == len(row)
