@@ -82,7 +82,7 @@ def evaluate_predictors(*predictor_factories):
     datasets = [dataset.name for dataset in open_datasets()]
 
     for predictor_factory in predictor_factories:
-        predictor = predictor_factory.__name__
+        predictor = str(predictor_factory)
         predictors.append(predictor)
 
         for dataset in open_datasets():
@@ -182,13 +182,13 @@ def evaluate_predictors(*predictor_factories):
 
 
 evaluate_predictors(
-    predictors.Linear12Adapt,
+    predictors.Linear12Adapt.factory(),
     predictors.Linear.factory(1),
     predictors.Linear.factory(2),
     predictors.Linear.factory(3),
     predictors.Linear.factory(5),
-    predictors.LSTSQLinear4,
-    predictors.LSTSQQuadratic5,
+    predictors.LSTSQLinear4.factory(),
+    predictors.LSTSQQuadratic5.factory(),
     predictors.DoubleExponential.factory(1, 1),
     predictors.DoubleExponential.factory(1, 2),
     predictors.DoubleExponential.factory(2, 0),

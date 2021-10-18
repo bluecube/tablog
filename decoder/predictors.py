@@ -15,22 +15,31 @@ def parse_type(t):
     return (low, high - 1)
 
 
+class _PredictorFactory:
+    def __init__(self, cls, args, kwargs):
+        self._cls = cls
+        self._args = args
+        self._kwargs = kwargs
+
+    def __call__(self, t):
+        return self._cls(t, *self._args, **self._kwargs)
+
+    def __str__(self):
+        return (
+            self._cls.__name__ + "("
+            + ", ".join(
+                itertools.chain(
+                    (f"{x}" for x in self._args), ("{k}={v}" for k, v in self._kwargs.items())
+                )
+            )
+            + ")"
+        )
+
+
 class _Predictor:
     @classmethod
     def factory(cls, *args, **kwargs):
-        ret = lambda t: cls(t, *args, **kwargs)
-        ret.__name__ = cls.__name__
-        if len(args) or len(kwargs):
-            ret.__name__ += (
-                "("
-                + ", ".join(
-                    itertools.chain(
-                        (f"{x}" for x in args), ("{k}={v}" for k, v in kwargs.items())
-                    )
-                )
-                + ")"
-            )
-        return ret
+        return _PredictorFactory(cls, args, kwargs)
 
     def predict_and_feed(self, value):
         ret = self.predict()
