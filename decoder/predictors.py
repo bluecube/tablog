@@ -72,6 +72,13 @@ class Linear(_HistoryPredictor):
     def __str__(self):
         return f"SimpleLinearPredictor({len(self._history)})"
 
+class LSTSQLinear4(_HistoryPredictor):
+    def __init__(self, t):
+        super().__init__(t, 4)
+
+    def predict(self):
+        return self._history[3] + (self._history[2] - self._history[0]) / 2
+
 
 class LSTSQQuadratic3(_HistoryPredictor):
     def __init__(self, t):

@@ -187,6 +187,7 @@ evaluate_predictors(
     predictors.Linear.factory(2),
     predictors.Linear.factory(3),
     predictors.Linear.factory(5),
+    predictors.LSTSQLinear4,
     predictors.LSTSQQuadratic5,
     predictors.DoubleExponential.factory(1, 1),
     predictors.DoubleExponential.factory(1, 2),
