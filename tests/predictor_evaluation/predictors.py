@@ -112,6 +112,15 @@ def evaluate_predictors(*predictor_factories):
         row.append(f"{total_sum_bits / total_count:.2f}b")
     table_data.append(row)
 
+    row = ["Average (equal weights)"]
+    for predictor_name in predictors:
+        total_sum_bits = 0
+        for dataset_name in datasets:
+            sum_bits, sum_abs_error, count = results[dataset_name, predictor_name]
+            total_sum_bits += sum_bits / count
+        #row.append(f"{total_sum_abs_error / total_count:.1f}; {total_sum_bits / total_count:.1f}b")
+        row.append(f"{total_sum_bits / len(datasets):.2f}b")
+    table_data.append(row)
     column_widths = [len(x) for x in table_header]
     for row in table_data:
         assert len(column_widths) == len(row)
