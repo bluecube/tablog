@@ -1,4 +1,5 @@
 import itertools
+import numpy
 
 def parse_type(t):
     """ Return closed interval of values """
@@ -56,6 +57,17 @@ class _HistoryPredictor(_Predictor):
         self._history = self._history[1:] + [value]
 
 
+class Last(_Predictor):
+    def __init__(self, _):
+        self._last = 0
+
+    def feed(self, value):
+        self._last = value
+
+    def predict(self):
+        return self._last
+
+
 class Linear(_HistoryPredictor):
     def __init__(self, t, history_length):
         super().__init__(t, history_length)
@@ -75,6 +87,22 @@ class Linear(_HistoryPredictor):
             prediction += (last - first) // (len(self._history) - 1)
             if prediction > self._max:
                 prediction = self._max
+
+        return prediction
+
+
+class LinearO2(_HistoryPredictor):
+    def __init__(self, t):
+        super().__init__(t, 2)
+        self._range = self._max - self._min + 1
+
+    def predict(self):
+        prediction = 2 * self._history[-1] - self._history[0]
+
+        if prediction > self._max:
+            prediction -= self._range
+        elif prediction < self._min:
+            prediction += self._range
 
         return prediction
 
@@ -194,34 +222,29 @@ class SmoothDeriv2(_HistoryPredictor):
         super().feed(value)
 
 
-class Linear12Adapt(_HistoryPredictor):
-    def __init__(self, t):
-        super().__init__(t, 2)
-        self._selector = 0 # >= 0 -> predict zero derivative, < 0 -> predict constant derivative
-        self._selector_max = 128
+class Adapt(_Predictor):
+    def __init__(self, t, selector_max, factory1, factory2):
+        super().__init__()
+        self._selector = 0 # >= 0 -> p1, < 0 -> p2
+        self._selector_max = selector_max
+        self._p1 = factory1(t)
+        self._p2 = factory2(t)
 
     def predict_and_feed(self, new_value):
+        prediction1 = self._p1.predict_and_feed(new_value)
+        prediction2 = self._p2.predict_and_feed(new_value)
 
-        if self._history[0] == self._history[1]:
-            prediction = self._history[1]
+        if self._selector >= 0:
+            prediction = prediction1
         else:
-            prediction1 = self._history[1]
-            prediction2_change = self._history[1] - self._history[0]
-            prediction2 = max(self._min, min(prediction1 + prediction2_change, self._max))
+            prediction = prediction2
 
-            if self._selector >= 0:
-                prediction = prediction1
-            else:
-                prediction = prediction2
+        error1 = abs(prediction1 - new_value)
+        error2 = abs(prediction2 - new_value)
 
-            error1 = prediction1 - new_value
-            error2 = prediction2 - new_value
-
-            if abs(error1) < abs(error2):
-                self._selector = min(self._selector + 1, self._selector_max - 1)
-            else:
-                self._selector = max(self._selector - 1, -self._selector_max)
-
-        super().feed(new_value)
+        if error1 < error2:
+            self._selector = min(self._selector + 1, self._selector_max - 1)
+        elif error1 > error2:
+            self._selector = max(self._selector - 1, -self._selector_max)
 
         return prediction

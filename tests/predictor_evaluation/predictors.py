@@ -182,9 +182,9 @@ def evaluate_predictors(*predictor_factories):
 
 
 evaluate_predictors(
-    predictors.Linear12Adapt.factory(),
-    predictors.Linear.factory(1),
+    predictors.Last.factory(),
     predictors.Linear.factory(2),
+    predictors.LinearO2.factory(),
     predictors.Linear.factory(3),
     predictors.Linear.factory(5),
     predictors.LSTSQLinear4.factory(),
@@ -197,4 +197,10 @@ evaluate_predictors(
     predictors.SmoothDeriv.factory(3),
     predictors.SmoothDeriv2.factory(2),
     predictors.SmoothDeriv2.factory(4),
+    predictors.Adapt.factory(128, predictors.Last.factory(), predictors.Linear.factory(2)),
+    predictors.Adapt.factory(128, predictors.Last.factory(), predictors.LinearO2.factory()),
+    predictors.Adapt.factory(128, predictors.Last.factory(), predictors.Linear.factory(3)),
+    predictors.Adapt.factory(128, predictors.Last.factory(), predictors.Linear.factory(5)),
+    predictors.Adapt.factory(128, predictors.Last.factory(), predictors.LSTSQLinear4.factory()),
+    predictors.Adapt.factory(128, predictors.Last.factory(), predictors.LSTSQQuadratic5.factory()),
 )
