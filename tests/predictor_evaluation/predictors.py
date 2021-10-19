@@ -5,6 +5,7 @@ import operator
 import math
 import gzip
 import io
+import time
 
 from datasets import individual_datasets
 from decoder import predictors
@@ -78,8 +79,10 @@ def ranking(values):
             ret[j] = i
     return ret
 
+
 def evaluate_predictors(*predictor_factories):
     results = {}
+    predictor_times = {}
     predictors = []
     datasets = [dataset.name for dataset in open_datasets()]
 
@@ -87,17 +90,24 @@ def evaluate_predictors(*predictor_factories):
         predictor = str(predictor_factory)
         predictors.append(predictor)
 
+        start_time = time.perf_counter()
         for dataset in open_datasets():
             assert len(dataset.field_types) == 1
             results[dataset.name, predictor] = evaluate_predictor_dataset(
                 predictor_factory(dataset.field_types[0]), dataset
             )
+        predictor_times[predictor] = time.perf_counter() - start_time
 
     predictors.append("Gzip")
     predictors.append("Gzip diff")
+    start_time = time.perf_counter()
     for dataset in open_datasets():
         results[dataset.name, "Gzip"] = evaluate_gzip_dataset(dataset, False)
+    predictor_times["Gzip"] = time.perf_counter() - start_time
+    start_time = time.perf_counter()
+    for dataset in open_datasets():
         results[dataset.name, "Gzip diff"] = evaluate_gzip_dataset(dataset, True)
+    predictor_times["Gzip diff"] = time.perf_counter() - start_time
 
     ranking_scores = {}
     for dataset_name in datasets:
@@ -110,7 +120,6 @@ def evaluate_predictors(*predictor_factories):
                 ranking_scores[predictor_name] = ranking_scores[predictor_name] + v
             else:
                 ranking_scores[predictor_name] = v
-
 
     table_header = ["Dataset"]
     table_header.extend(predictors)
@@ -158,6 +167,11 @@ def evaluate_predictors(*predictor_factories):
     row = ["Ranking score"]
     for predictor_name in predictors:
         row.append(f"{ranking_scores[predictor_name]}")
+    table_data.append(row)
+
+    row = ["Evaluation time (python)"]
+    for predictor_name in predictors:
+        row.append(f"{predictor_times[predictor_name]:.1}s")
     table_data.append(row)
 
     column_widths = [len(x) for x in table_header]
