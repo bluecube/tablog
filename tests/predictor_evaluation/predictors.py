@@ -1,5 +1,7 @@
 #!/bin/env python3
 
+import itertools
+import operator
 import math
 import gzip
 import io
@@ -71,10 +73,10 @@ def ranking(values):
     decorated = [(v, i) for i, v in enumerate(values)]
     decorated.sort()
     ret = [None] * len(decorated)
-    for i, (_, j) in enumerate(decorated):
-        ret[j] = i
+    for i, (_, group) in enumerate(itertools.groupby(decorated, key=operator.itemgetter(0))):
+        for _, j in group:
+            ret[j] = i
     return ret
-
 
 def evaluate_predictors(*predictor_factories):
     results = {}
