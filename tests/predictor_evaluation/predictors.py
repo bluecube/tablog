@@ -136,7 +136,12 @@ def evaluate_predictors(*predictor_factories):
             sum_bits, sum_abs_error, count = results[dataset_name, predictor_name]
             #row.append(f"{sum_abs_error / count:.1f}; {sum_bits / count:.1f}b")
             percent_to_best = round(sum_bits * 100 / best_predictor_length) - 100
-            to_best = "👍" if percent_to_best <= 0 else f"(+{percent_to_best}%)"
+            if percent_to_best <= 0:
+                to_best = "👍"
+            elif percent_to_best < 15:
+                to_best = f"(+{percent_to_best}%)"
+            else:
+                to_best = f"(+{percent_to_best}% 💢)"
             row.append(f"{sum_bits / count:.2f}b {to_best}")
         table_data.append(row)
 
