@@ -21,12 +21,10 @@ class PredictorInterface {
 public:
     virtual ~PredictorInterface() {}
 
-    /// Returns a predicted value
-    /// Prediction always works, regardless of number of data points provided.
-    virtual int64_t predict() const = 0;
-
-    /// Feed a new value to the predictor
-    virtual void feed(int64_t value) = 0;
+    /// Predict a value and feed in an actual observation.
+    /// Prediction is independent of input value, these are fused into
+    /// a single function only as a (potential) performance improvement.
+    virtual int64_t predict_and_feed(int64_t value) = 0;
 
     /// Return signedness of the predictor type.
     virtual bool t_is_signed() const = 0;
@@ -44,16 +42,12 @@ public:
     template <typename... Args>
     PredictorAdapter(Args&&... args) : predictor(std::forward<Args>(args)...) {}
 
-    int64_t predict() const override {
-        return predictor.predict();
-    }
-
-    void feed(int64_t value) override {
+    int64_t predict_and_feed(int64_t value) override {
         using Type = typename T::Type;
         if (value > std::numeric_limits<Type>::max() ||
             value < std::numeric_limits<Type>::min())
             throw std::runtime_error("Predictor value out of range");
-        predictor.feed(static_cast<Type>(value));
+        return predictor.predict_and_feed(static_cast<Type>(value));
     }
 
     /// Return signedness of the predictor type.

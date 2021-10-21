@@ -23,12 +23,8 @@ public:
     /// Store a value into the value stream.
     template <typename Encoder>
     void write(const ValueT& value, Encoder& encoder) {
-        const auto prediction = predictor->predict();
 
-        /// the difference will always fit into an unsigned type
-        /// It will be performed in a signed type first, though, which might overflow
-        /// but this shouldn't matter.
-        predictor->feed(value);
+        const auto prediction = predictor->predict_and_feed(value);
 
         if (prediction == value) {
             encoder->predictor_hit_streak(1);

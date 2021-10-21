@@ -17,13 +17,10 @@ public:
 
     /// Returns a predicted value
     /// Prediction always works, regardless of number of data points provided.
-    T predict() const {
-        return detail::extrapolate<T, N - 1>(history.front(), history.back());
-    }
-
-    /// Feed a new value to the predictor
-    void feed(T value) {
+    T predict_and_feed(T value) {
+        auto prediction = detail::extrapolate<T, N - 1>(history.front(), history.back());
         history.push_back(value);
+        return prediction;
     }
 
 protected:

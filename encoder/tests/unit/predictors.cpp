@@ -8,26 +8,26 @@ TEST_CASE("SimpleLinear predictor") {
 
     tablog::predictors::SimpleLinear<int, n> predictor;
 
-    REQUIRE(predictor.predict() == 0);
+    REQUIRE(predictor.predict_and_feed(0) == 0);
         // Return zero if no data have been provided so far
 
     SECTION("Predictor is actually linear") {
         // skip over the initial zeros
         for (std::size_t i = 0; i < n; ++i)
-            predictor.feed(test_data(i));
+            predictor.predict_and_feed(test_data(i));
 
         for (std::size_t i = n; i < 10 * n; ++i)
         {
-            predictor.feed(test_data(i));
-            REQUIRE(predictor.predict() == test_data(i + 1));
+            auto v = test_data(i);
+            REQUIRE(predictor.predict_and_feed(v) == v);
         }
     }
 
     SECTION("Ignoring noise in the middle") {
-        predictor.feed(test_data(0));
+        predictor.predict_and_feed(test_data(0));
         for (unsigned i = 1; i < n - 1; ++i)
-            predictor.feed(999);
-        predictor.feed(test_data(n - 1));
-        REQUIRE(predictor.predict() == test_data(n));
+            predictor.predict_and_feed(999);
+        predictor.predict_and_feed(test_data(n - 1));
+        REQUIRE(predictor.predict_and_feed(0) == test_data(n));
     }
 }
