@@ -106,8 +106,6 @@ class LinearO2(_HistoryPredictor):
 
         return prediction
 
-    def __str__(self):
-        return f"SimpleLinearPredictor({len(self._history)})"
 
 class LSTSQLinear4(_HistoryPredictor):
     def __init__(self, t):
@@ -124,9 +122,6 @@ class LSTSQQuadratic3(_HistoryPredictor):
     def predict(self):
         return self._history[0] + 3 * (self._history[2] - self._history[1])
 
-    def __str__(self):
-        return f"ThreePointQuadraticPredictor()"
-
 
 class LSTSQQuadratic4(_HistoryPredictor):
     def __init__(self, t):
@@ -142,9 +137,6 @@ class LSTSQQuadratic4(_HistoryPredictor):
             // 4
         )
 
-    def __str__(self):
-        return f"FourPointQuadraticPredictor()"
-
 
 class LSTSQQuadratic5(_HistoryPredictor):
     def __init__(self, t):
@@ -159,9 +151,6 @@ class LSTSQQuadratic5(_HistoryPredictor):
             )
             // 5
         )
-
-    def __str__(self):
-        return f"FivePointQuadraticPredictor()"
 
 
 class DoubleExponential(_Predictor):
@@ -181,9 +170,6 @@ class DoubleExponential(_Predictor):
         v_change = self._d + (value - (self._v + self._d)) >> self._smoothing1
         self._v += v_change
         self._d += (v_change - self._d) >> self._smoothing2
-
-    def __str__(self):
-        return f"GeneralizedEWMA({len(self._derivatives)}, {self._smoothing})"
 
 
 class SmoothDeriv(_HistoryPredictor):
