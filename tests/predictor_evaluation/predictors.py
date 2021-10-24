@@ -176,7 +176,7 @@ def evaluate_predictors(*predictor_factories):
 
     row = ["Evaluation time (python)"]
     for predictor_name in predictors:
-        row.append(f"{predictor_times[predictor_name]:.1}s")
+        row.append(f"{predictor_times[predictor_name]:.2f}s")
     table_data.append(row)
 
     column_widths = [len(x) for x in table_header]
@@ -204,24 +204,27 @@ def evaluate_predictors(*predictor_factories):
 
 evaluate_predictors(
     predictors.Last.factory(),
-    predictors.Linear.factory(2),
     predictors.LinearO2.factory(),
-    predictors.Linear.factory(3),
     predictors.Linear.factory(5),
     predictors.LSTSQLinear4.factory(),
     predictors.LSTSQQuadratic5.factory(),
     predictors.DoubleExponential.factory(1, 1),
-    predictors.DoubleExponential.factory(1, 2),
-    predictors.DoubleExponential.factory(2, 0),
     predictors.DoubleExponential.factory(2, 2),
     predictors.SmoothDeriv.factory(2),
     predictors.SmoothDeriv.factory(3),
     predictors.SmoothDeriv2.factory(2),
-    predictors.SmoothDeriv2.factory(4),
-    predictors.Adapt.factory(128, predictors.Last.factory(), predictors.Linear.factory(2)),
     predictors.Adapt.factory(128, predictors.Last.factory(), predictors.LinearO2.factory()),
-    predictors.Adapt.factory(128, predictors.Last.factory(), predictors.Linear.factory(3)),
-    predictors.Adapt.factory(128, predictors.Last.factory(), predictors.Linear.factory(5)),
-    predictors.Adapt.factory(128, predictors.Last.factory(), predictors.LSTSQLinear4.factory()),
-    predictors.Adapt.factory(128, predictors.Last.factory(), predictors.LSTSQQuadratic5.factory()),
+    predictors.Adapt.factory(64, predictors.Last.factory(), predictors.LinearO2.factory()),
+    predictors.Adapt.factory(32, predictors.Last.factory(), predictors.LinearO2.factory()),
+    predictors.Adapt.factory(16, predictors.Last.factory(), predictors.LinearO2.factory()),
+    predictors.Adapt.factory(8, predictors.Last.factory(), predictors.LinearO2.factory()),
+    predictors.Adapt.factory(4, predictors.Last.factory(), predictors.LinearO2.factory()),
+    predictors.Adapt.factory(2, predictors.Last.factory(), predictors.LinearO2.factory()),
+    predictors.Adapt.factory(128, predictors.Last.factory(), predictors.LinearO2.factory()),
+    predictors.Adapt.factory(64, predictors.Last.factory(), predictors.Linear.factory(3)),
+    predictors.Adapt.factory(32, predictors.Last.factory(), predictors.Linear.factory(3)),
+    predictors.Adapt.factory(16, predictors.Last.factory(), predictors.Linear.factory(3)),
+    predictors.Adapt.factory(8, predictors.Last.factory(), predictors.Linear.factory(3)),
+    predictors.Adapt.factory(4, predictors.Last.factory(), predictors.Linear.factory(3)),
+    predictors.Adapt.factory(2, predictors.Last.factory(), predictors.Linear.factory(3)),
 )
