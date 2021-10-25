@@ -4,6 +4,7 @@
 #include <utility>
 #include <limits>
 #include <cstdint>
+#include <cassert>
 
 namespace tablog::detail {
 
@@ -62,6 +63,20 @@ constexpr T extrapolate(T first, T last) noexcept {
 /// Calculate floor(log2(v)) for values between 1 and 9 (inclusive).
 constexpr uint_fast8_t small_int_log2(uint_fast8_t v) {
     return (v >> 1) - (v > 5);
+}
+
+/// Calculate floor(log2(v)) for values between 1 and 9 (inclusive).
+template <typename T>
+constexpr uint_fast8_t int_log2(T v) {
+    static_assert(!std::is_signed_v<T>);
+    assert(v > 0);
+
+    if constexpr (std::is_same_v<T, unsigned long long>)
+        return std::numeric_limits<T>::digits - 1 - __builtin_clzll(v);
+    else if constexpr (std::is_same_v<T, unsigned long>)
+        return std::numeric_limits<T>::digits - 1 - __builtin_clzl(v);
+    else
+        return std::numeric_limits<unsigned>::digits - 1 - __builtin_clz(v);
 }
 
 }

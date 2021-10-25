@@ -97,7 +97,20 @@ TEMPLATE_TEST_CASE("extrapolate", "",
 
 TEST_CASE("small_int_log2") {
     auto v = GENERATE(Catch::Generators::range(1, 9));
-    auto ret = tablog::detail::small_int_log2(v);
+    REQUIRE(tablog::detail::small_int_log2(v) == floor(log2(v)));
+}
 
-    REQUIRE(ret == floor(log2(v)));
+TEMPLATE_TEST_CASE("int_log2", "",
+    uint8_t, uint16_t, uint32_t, uint64_t) {
+
+    auto v = GENERATE(
+        Catch::Generators::take(
+            500,
+            Catch::Generators::random<TestType>(
+                1ul,
+                std::numeric_limits<TestType>::max()
+            )
+        )
+    );
+    REQUIRE(tablog::detail::int_log2(v) == floor(log2(v)));
 }
