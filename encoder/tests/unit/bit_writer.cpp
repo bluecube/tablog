@@ -2,18 +2,10 @@
 
 #include <catch2/catch.hpp>
 
-struct StringWriter {
-    void operator() (unsigned c) {
-        s.push_back(c);
-    }
-
-    std::string& s;
-};
-
 TEST_CASE("BitWriter") {
     std::string data;
 
-    tablog::util::BitWriter bw(StringWriter{data});
+    tablog::util::BitWriter bw([&data](uint8_t c) { data.push_back(c); });
 
     SECTION("Write 8 single bits") {
         for (uint32_t i = 0; i < 8; ++i)
