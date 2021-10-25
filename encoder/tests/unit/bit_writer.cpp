@@ -63,4 +63,13 @@ TEST_CASE("BitWriter") {
         bw.write(0xffu, 1);
         bw.flush();
     }
+
+    SECTION("Write 8 bits bit by bit") {
+        uint8_t c = 'A';
+        for (unsigned i = 0; i < 8; ++i) {
+            bw.write_bit(c);
+            c >>= 1;
+        }
+        REQUIRE(data == "A");
+    }
 }

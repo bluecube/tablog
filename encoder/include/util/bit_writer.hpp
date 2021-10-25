@@ -53,6 +53,10 @@ public:
         assert(buffer >> bufferUsed == 0);
     }
 
+    void write_bit(uint_fast8_t b) {
+        write(b, 1);
+    }
+
     /// Pad the last unwritten byte with zeros and output it.
     void flush() {
         output(buffer);
