@@ -24,25 +24,23 @@ void JsonEncoder::end_of_stream() {
         "}\n";
 }
 
-void JsonEncoder::predictor_hit_streak(uint_fast8_t streakLength) {
+void JsonEncoder::predictor_hit() {
     if (!firstRecord)
         finalize_field_headers();
 
     stream <<
         "    {\n" <<
         "      \"error\": 0,\n" <<
-        "      \"streak_length\": " << static_cast<uint64_t>(streakLength) << "\n" <<
         "    }";
 }
 
-void JsonEncoder::predictor_miss(bool predictionHigh, uint64_t absErrorToEncode) {
+void JsonEncoder::predictor_miss(bool predictionHigh, uint64_t absErrorToEncode, uint8_t&) {
     if (!firstRecord)
         finalize_field_headers();
 
     stream <<
         "    {\n" <<
         "      \"error\": " << (predictionHigh ? "" : "-") << absErrorToEncode << ",\n" <<
-        "      \"streak_length\": 1\n" <<
         "    }";
 }
 

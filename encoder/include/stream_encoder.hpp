@@ -1,6 +1,7 @@
 #pragma once
 
 #include "util/misc.hpp"
+#include "util/bit_writer.hpp"
 
 #include <cstdint>
 #include <limits>
@@ -20,85 +21,84 @@ public:
     StreamEncoder(OutputF output)
         : output(std::move(output)) {}
 
-    constexpr uint_fast8_t get_max_hit_streak_length() const {
-        return 7;
-    }
-
     void header(uint_fast8_t version, uint_fast8_t fieldCount) {
-        number(version);
-        number(fieldCount);
+        elias_gamma(version + 1u);
+        elias_gamma(fieldCount);
     }
 
     /// Output field header. Field headers must directly follow header, with the
     /// same count as fieldCount in the header.
     void field_header(const char* fieldName, bool signedType, uint_fast8_t typeSize) {
         string(fieldName);
-        uint_fast8_t encodedType = small_int_log2(typeSize);
-        if (signedType)
-            encodedType |= signedTypeFlag;
-        output_nibble(encodedType);
+        uint_fast8_t typeExponent = small_int_log2(typeSize);
+        output.write_bit(signedType);
+        output.write(typeExponent, 2);
     }
 
     /// Encode a predictor hit streak.
     /// Streak length must be greater than 0 and less or equal than maxHitStreakLength.
-    void predictor_hit_streak(uint_fast8_t streakLength) {
-        assert(streakLength > 0);
-        assert(streakLength <= get_max_hit_streak_length());
-
-        output_nibble(predictorHit | streakLength);
+    void predictor_hit() {
+        output.write_bit(1);
     }
 
     /// Encode a predictor miss, with given sign and absolute value.
     /// Absolute value here must already be shifted by tolerance -- this function
     /// expects minimal values of absErrorToEncode to be 1
-    /// Sign and value are separate, because
-    ///  - Values near zero are typically removed for tolerance, requiring abs value anyway
-    ///  - We avoid possible overflows with large unsigned types
     template <typename T>
-    void predictor_miss(bool predictionHigh, T absErrorToEncode) {
+    void predictor_miss(bool predictionHigh, T absErrorToEncode, uint8_t& streamState) {
         assert(absErrorToEncode > 0);
 
-        absErrorToEncode -= 1;
+        output.write_bit(0);
+        output.write_bit(predictionHigh);
 
-        uint_fast8_t encoded = predictorMiss;
-        encoded |= static_cast<uint_fast8_t>(predictionHigh) << predictorHighFlagShift;
-        encoded |= absErrorToEncode & predictorMissValueMask;
-        encoded |= (absErrorToEncode == 0) << predictorMissFinalFlagShift;
-        output_nibble(encoded);
-
-        if (absErrorToEncode > 0)
-            number(absErrorToEncode);
+        adaptive_exp_golomb(absErrorToEncode - 1, streamState);
     }
 
-    /// Encode end of stream marker.
     void end_of_stream() {
-        // End of stream is encoded by two end of stream nibbles (hit streak of length 0)
-        // and then padded to full buffer size.
-
-        output_nibble(predictorHit);
-        output_nibble(predictorHit);
-        while (bufferBitsUsed != 0)
-            output_nibble(predictorHit);
+        // TODO: Implement
     }
 
 private:
-    /// Encode a number into nibbles with continuation bits
+    static constexpr uint_fast8_t streamStateShift = 2;
+
+    /// Encode the number using adaptive exp-golomb coding.
+    /// This function can encode zero values.
+    ///
+    /// Loosely based on
+    /// Henrique S. Malvar: Adaptive Run-Length / Golomb-Rice Encoding of
+    ///     Quantized Generalized Gaussian Sources with Unknown Statistics
+    /// https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/Malvar_DCC06.pdf
+    ///
+    /// We use the EXP variant, because for anomalous inputs the non-exp version
+    /// could fail catastrophically.
+    /// Eg. 64 bit value, that has low values and low prediction errors, suddenly
+    /// jumping to INT64_MAX. This would cause the unary part of golomb coding to
+    /// explode to 2**64 bits of length.
     template <typename T>
-    void number(T number) {
-        do {
-            uint_fast8_t encoded  = (number & numberBlockMask);
-            number >>= numberBlockBits;
-            encoded |= (static_cast<uint_fast8_t>(number == 0) << numberFinalFlagShift);
-            output_nibble(encoded);
-        } while (number != 0);
+    void adaptive_exp_golomb(T n, uint8_t& streamState) {
+        const auto k = streamState >> streamStateShift;
+        const auto p = n >> k;
+
+        elias_gamma(p + 1); // Quotient; elias gamma can't encode zeros, therefore + 1
+        output.write(n, k); // Remainder (masking upper bits is performed by bit writer)
+
+        streamState += p - 1; // Update the adaptive shift value
     }
 
-    /// Encode the string into the output as a sequence 
-    /// using a predictor that always says 'e'.
-    /// This is kind of in the middle of printable ASCII set,
-    /// biased towards the lower case. As a bonus, 'e' is the most common character.
+    template <typename T>
+    void elias_gamma(T n) {
+        static_assert(!std::is_signed_v<T>);
+        assert(n > 0);
+
+        auto logN = int_log2(n); // TODO: use std::bit_width(n) - 1, once we bump to c++20
+        output.write(T(0), logN);
+        output.write(n, logN - 1);
+    }
+
+    /// Encode the string into the output as a sequence
     /// Null string is equivalent to empty string.
     void string(const char* str) {
+        (void)str;
         /*if (str) {
             ValueCompressor<uint8_t, predictors::Constant<uint8_t, 'e'>> compressor;
             number(strlen(str));
@@ -107,44 +107,9 @@ private:
         }
         else
             number((uint8_fast_t)0);*/
-        (void)str;
     }
 
-    void output_nibble(uint_fast8_t nibble) {
-        buffer |= nibble << bufferBitsUsed;
-        bufferBitsUsed += nibbleBits;
-        if (bufferBitsUsed == bufferSizeBits)
-            flush_buffer();
-    }
-
-    void flush_buffer() {
-        output(buffer);
-        bufferBitsUsed = 0;
-    }
-
-    static constexpr uint_fast8_t nibbleBits = 4;
-
-    static constexpr uint_fast8_t signedTypeFlag = 0x8;
-
-    static constexpr uint_fast8_t predictorHit = 0x8;
-
-    static constexpr uint_fast8_t predictorMiss = 0x0;
-    static constexpr uint_fast8_t predictorHighFlagShift = 2;
-    static constexpr uint_fast8_t predictorMissFinalFlagShift = 1;
-    static constexpr uint_fast8_t predictorMissValueBits = 1;
-    static constexpr uint_fast8_t predictorMissValueMask = (1 << predictorMissValueBits) - 1;
-
-    static constexpr uint_fast8_t numberFinalFlagShift = 3;
-    static constexpr uint_fast8_t numberBlockBits = 3;
-    static constexpr uint_fast8_t numberBlockMask = (1 << numberBlockBits) - 1;
-
-
-    OutputF output;
-    uint_fast8_t buffer;
-    uint_fast8_t bufferBitsUsed = 0;
-
-    // Always flush every byte, avoids potential problems with endianness
-    static constexpr uint_fast8_t bufferSizeBits = 8;
+    util::BitWriter<OutputF> output;
 };
 
 }

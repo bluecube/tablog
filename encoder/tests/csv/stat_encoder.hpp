@@ -16,14 +16,12 @@ class StatEncoder : public dynamic::EncoderInterface {
 public:
     StatEncoder(std::ostream& stream);
 
-    /* This is to make the compression comparable to stream encoder, in fact we could use uint64 max.*/
-    static constexpr uint_fast8_t maxHitStreakLength = 7;
+    static constexpr uint_fast8_t maxHitStreakLength = 128;
 
-    uint_fast8_t get_max_hit_streak_length() const override { return maxHitStreakLength; }
     void header(uint_fast8_t version, uint_fast8_t fieldCount) override;
     void field_header(const char* fieldName, bool signedType, uint_fast8_t typeSize) override;
-    void predictor_hit_streak(uint_fast8_t streakLength) override;
-    void predictor_miss(bool predictionHigh, uint64_t absErrorToEncode) override;
+    void predictor_hit() override;
+    void predictor_miss(bool predictionHigh, uint64_t absErrorToEncode, uint8_t&) override;
     void end_of_stream() override;
 
 private:
@@ -37,9 +35,9 @@ private:
 
     std::ostream& stream;
 
-    static constexpr size_t maxMissDistance = 20;
+    static constexpr size_t maxMissDistance = 50;
 
-    size_t streakCounts[maxHitStreakLength];
+    size_t hitCount;
     size_t positiveCounts[maxMissDistance];
     size_t negativeCounts[maxMissDistance];
     size_t encodedByteCount;

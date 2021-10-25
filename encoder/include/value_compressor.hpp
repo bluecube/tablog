@@ -27,15 +27,16 @@ public:
         const auto prediction = predictor->predict_and_feed(value);
 
         if (prediction == value) {
-            encoder->predictor_hit_streak(1);
+            encoder->predictor_hit();
         } else {
             const auto [absError, predictionHigh] = abs_diff(prediction, value);
-            encoder->predictor_miss(predictionHigh, absError);
+            encoder->predictor_miss(predictionHigh, absError, encoderState);
         }
     }
 
 private:
     Predictor predictor;
+    uint8_t encoderState = 0;
 };
 
 }

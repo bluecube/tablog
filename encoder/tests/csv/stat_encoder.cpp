@@ -7,9 +7,6 @@ StatEncoder::StatEncoder(std::ostream& stream)
     streamEncoder{StreamOutF{*this}}
 {
 
-    for (size_t i = 0; i < maxHitStreakLength; ++i)
-        streakCounts[i] = 0;
-
     for (size_t i = 0; i < maxMissDistance; ++i) {
         positiveCounts[i] = 0;
         negativeCounts[i] = 0;
@@ -27,7 +24,7 @@ void StatEncoder::field_header(const char* fieldName, bool signedType, uint_fast
 }
 
 void StatEncoder::end_of_stream() {
-    streamEncoder.end_of_stream();
+    //streamEncoder.end_of_stream();
     for (ssize_t i = 0; i < static_cast<ssize_t>(maxMissDistance); ++i) {
         auto index = static_cast<ssize_t>(maxMissDistance) - 1 - i;
         auto distance = -static_cast<ssize_t>(maxMissDistance) + i;
@@ -35,10 +32,7 @@ void StatEncoder::end_of_stream() {
         stream << distance << ": " << negativeCounts[index] << "\n";
     }
 
-    stream << "0:";
-    for (size_t i = 0; i < maxHitStreakLength; ++i)
-        stream << " x" << (i + 1) << ": " << streakCounts[i];
-    stream << "\n";
+    stream << "0:" << hitCount << "\n";
 
     for (size_t i = 0; i < maxMissDistance; ++i)
         stream << (i + 1) << ": " << positiveCounts[i] << "\n";
@@ -47,17 +41,13 @@ void StatEncoder::end_of_stream() {
     stream << "Encoded size: " << encodedByteCount << " B\n";
 }
 
-void StatEncoder::predictor_hit_streak(uint_fast8_t streakLength) {
-    streamEncoder.predictor_hit_streak(streakLength);
-
-    if (streakLength > maxHitStreakLength)
-        throw std::runtime_error("Hit streak length out of range");
-
-    streakCounts[streakLength - 1]++;
+void StatEncoder::predictor_hit() {
+    streamEncoder.predictor_hit();
+    ++hitCount;
 }
 
-void StatEncoder::predictor_miss(bool predictionHigh, uint64_t absErrorToEncode) {
-    streamEncoder.predictor_miss(predictionHigh, absErrorToEncode);
+void StatEncoder::predictor_miss(bool predictionHigh, uint64_t absErrorToEncode, uint8_t& streamState) {
+    streamEncoder.predictor_miss(predictionHigh, absErrorToEncode, streamState);
 
     if (absErrorToEncode > maxMissDistance)
         absErrorToEncode = maxMissDistance;

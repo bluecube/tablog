@@ -36,6 +36,7 @@ void Tablog::write(const std::vector<ValueType>& values) {
 void Tablog::close() {
     if (!encoder)
         return;
+
     encoder->end_of_stream();
     encoder = nullptr;
 }
