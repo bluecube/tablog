@@ -4,50 +4,43 @@ namespace tablog::test {
 
 void JsonEncoder::header(uint_fast8_t version, uint_fast8_t fieldCount) {
     stream <<
-        "{\n" <<
-        "  \"version\": " << static_cast<uint64_t>(version) << ",\n" <<
-        "  \"field_count\": " << static_cast<uint64_t>(fieldCount) << ",\n" <<
-        "  \"field_descriptors\": [\n";
+        "{ " <<
+        "\"version\": " << static_cast<uint64_t>(version) << ", " <<
+        "\"field_count\": " << static_cast<uint64_t>(fieldCount) << ", " <<
+        "\"field_descriptors\": [ ";
 }
 
 void JsonEncoder::field_header(const char* fieldName, bool signedType, uint_fast8_t typeSize) {
+    if (!firstFieldHeader)
+        std::cout << ", ";
+    firstFieldHeader = false;
     stream <<
-        "    {\n" <<
-        "      \"name\": \"" << fieldName << ",\n" <<
-        "      \"type\": \"" << (signedType ? "s" : "u") << typeSize << "\"\n" <<
-        "    }";
+        "{ " <<
+        "\"name\": \"" << fieldName << "\", " <<
+        "\"type\": \"" << (signedType ? "s" : "u") << static_cast<unsigned>(8 * typeSize) << "\" " <<
+        "}";
 }
 
 void JsonEncoder::end_of_stream() {
-    stream <<
-        "  ]\n" <<
-        "}\n";
+    stream << "\n{}\n";
 }
 
 void JsonEncoder::predictor_hit() {
-    if (!firstRecord)
+    if (firstRecord)
         finalize_field_headers();
 
-    stream <<
-        "    {\n" <<
-        "      \"error\": 0,\n" <<
-        "    }";
+    stream << "\n{ \"error\": 0 }";
 }
 
 void JsonEncoder::predictor_miss(bool predictionHigh, uint64_t absErrorToEncode, uint8_t&) {
-    if (!firstRecord)
+    if (firstRecord)
         finalize_field_headers();
 
-    stream <<
-        "    {\n" <<
-        "      \"error\": " << (predictionHigh ? "" : "-") << absErrorToEncode << ",\n" <<
-        "    }";
+    stream << "\n{ \"error\": " << (predictionHigh ? "" : "-") << absErrorToEncode << " }";
 }
 
 void JsonEncoder::finalize_field_headers() {
-    stream <<
-    "  ],\n" <<
-    "  \"records\": [\n";
+    stream << " ] }";
     firstRecord = false;
 }
 

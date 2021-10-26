@@ -25,6 +25,7 @@ private:
     void finalize_field_headers();
     std::ostream& stream;
     bool firstRecord = true;
+    bool firstFieldHeader = true;
 };
 
 };
