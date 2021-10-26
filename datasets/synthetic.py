@@ -22,7 +22,7 @@ def all_datasets(length):
             continue
         if func is all_datasets:
             continue
-        for t in ["s8", "u16", "u32", "s64"]:  # Not completely random selection
+        for t in ["s8", "u16", "s64"]:  # Not completely random selection
             dataset_name_prefix = f'{func_name}("{t}"'
             if "period" in inspect.signature(func).parameters:
                 for period in [100, 10000]:
@@ -147,6 +147,23 @@ def count_up(t, length):
     low, high = _parse_type(t)
     scale = high - low
     return ([(i % scale) + low] for i in range(length))
+
+
+def unexpected_jump(t, period, length):
+    """ Generate a value close to zero, with an occasional jump to maximum value.
+
+    Dataset like this is a critical failure point for vanilla Golomb encoder
+    (the unexpected jump will cause a large missprediction, that gets encoded to
+    approximately as many bits as is the maximum value of the variable). """
+    _, high = _parse_type(t)
+    gen = _make_generator(t, period)
+    next_jump = gen.geometric(1 / period)
+    for i in range(length):
+        if i == next_jump:
+            yield [high - 1]
+            next_jump += gen.geometric(1 / period)
+        else:
+            yield [int(gen.integers(10, 20))]
 
 
 if __name__ == "__main__":
