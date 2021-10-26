@@ -4,6 +4,7 @@ import numpy.random
 import inspect
 import sys
 import hashlib
+import functools
 
 # Hackish workaround to be able to run this as a script too (rather than just as a part of a package)
 try:
@@ -26,19 +27,17 @@ def all_datasets(length):
             if "period" in inspect.signature(func).parameters:
                 for period in [100, 10000]:
                     yield dataset.Dataset(
-                        dataset_name_prefix
-                        + f", {period}"
-                        + dataset_name_suffix,
+                        f"{dataset_name_prefix}, {period}{dataset_name_suffix}",
                         ["value"],
                         [t],
-                        lambda: func(t, period, length),
+                        functools.partial(func, t, period, length)
                     )
             else:
                 yield dataset.Dataset(
                     dataset_name_prefix + dataset_name_suffix,
                     ["value"],
                     [t],
-                    lambda: func(t, length),
+                    functools.partial(func, t, length)
                 )
 
 
