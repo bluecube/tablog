@@ -22,6 +22,9 @@ void JsonEncoder::field_header(const char* fieldName, bool signedType, uint_fast
 }
 
 void JsonEncoder::end_of_stream() {
+    if (firstRecord)
+        finalize_field_headers();
+
     stream << "\n{}\n";
 }
 
