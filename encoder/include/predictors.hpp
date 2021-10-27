@@ -39,13 +39,13 @@ public:
     /// Returns a predicted value
     /// Prediction always works, regardless of number of data points provided.
     T predict_and_feed(T value) {
-        const auto prediction1 = prev[1];
-        const auto prediction2 = 2 * prev[1] - prev[0]; // Might overflow, but that's ok.
+        const T prediction1 = prev[1];
+        const T prediction2 = 2 * prev[1] - prev[0]; // Might overflow, but that's ok.
 
         const auto prediction = selector >= 0 ? prediction1 : prediction2;
 
-        const auto error1 = abs_diff(prediction1, value);
-        const auto error2 = abs_diff(prediction2, value);
+        const auto error1 = detail::abs_diff(prediction1, value);
+        const auto error2 = detail::abs_diff(prediction2, value);
 
         if (error1.first < error2.first) {
             if (selector < (selectorLimit - 1))
@@ -57,12 +57,14 @@ public:
 
         prev[0] = prev[1];
         prev[1] = value;
+
+        return prediction;
     }
 
 protected:
     static constexpr int_fast8_t selectorLimit = 8;
     T prev[2];
-    int_fast8_t selector;
+    int_fast8_t selector = 0;
 };
 
 }

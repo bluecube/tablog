@@ -64,6 +64,10 @@ std::vector<std::pair<std::string, std::function<dynamic::Predictor(const std::s
     {
         "linear3",
         PREDICTOR_FACTORY(predictors::SimpleLinear, Type, 3)
+    },
+    {
+        "linear12adapt",
+        PREDICTOR_FACTORY(predictors::Linear12Adapt, Type)
     }
 };
 

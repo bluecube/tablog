@@ -7,6 +7,12 @@ from decoder import predictors
 # Mapping C++ predictor names to python predictor factory
 cpp_equivalents = {
     "linear3": predictors.Linear.factory(3),
+    "linear12adapt":
+        predictors.Adapt.factory(
+            8,
+            predictors.Last.factory(),
+            predictors.LinearO2.factory()
+        ),
 }
 
 
@@ -21,7 +27,7 @@ def _cpp_errors(dataset, predictor_name):
 @pytest.mark.parametrize(
     "predictor",
     cpp_equivalents.items(),
-    ids=lambda pair: pair[0]
+    ids=cpp_equivalents.keys()
 )
 @pytest.mark.parametrize(
     "dataset",
