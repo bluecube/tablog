@@ -43,13 +43,17 @@ class _CsvDataIterator:
 
 def _all_csv_files():
     current_dir = os.path.dirname(__file__)
+    ret = []
     for (dirpath, dirnames, filenames) in os.walk(current_dir):
         rel_dirpath = os.path.relpath(dirpath, current_dir)
         for filename in filenames:
             if filename.endswith(".csv"):
                 file_path = os.path.join(dirpath, filename)
                 rel_file_path = os.path.join(rel_dirpath, filename)
-                yield (file_path, rel_file_path)
+                ret.append((rel_file_path, file_path))
+
+    ret.sort()
+    return ret
 
 
 def _parse_type(t):
@@ -86,7 +90,7 @@ def _open_dataset(csv_path, csv_name):
 
 
 def all_datasets():
-    for csv_path, csv_name in _all_csv_files():
+    for csv_name, csv_path in _all_csv_files():
         yield _open_dataset(csv_path, csv_name)
 
 

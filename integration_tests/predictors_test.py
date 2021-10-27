@@ -34,7 +34,8 @@ def _cpp_errors(dataset, predictor_name):
     list(datasets.individual_datasets(True)),
     ids=lambda dataset: dataset.name
 )
-def test_predictor_equality(predictor, dataset):
+def test_equality(predictor, dataset):
+    """ Check that python and C++ predictors generate the same values """
     predictor_name, predictor_factory = predictor
     predictor = predictor_factory(dataset.field_types[0])
     for (v,), cpp_error in zip(dataset, _cpp_errors(dataset, predictor_name)):
