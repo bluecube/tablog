@@ -166,6 +166,10 @@ def unexpected_jump(t, period, length):
             yield [int(gen.integers(10, 20))]
 
 
+def empty(t, _):
+    return iter(())
+
+
 if __name__ == "__main__":
     dataset.show_content(all_datasets(length=100))
 
