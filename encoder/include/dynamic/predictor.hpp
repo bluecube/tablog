@@ -5,6 +5,7 @@
 #include <limits>
 #include <stdexcept>
 #include <type_traits>
+#include <sstream>
 
 namespace tablog::dynamic {
 
@@ -44,9 +45,18 @@ public:
 
     int64_t predict_and_feed(int64_t value) override {
         using Type = typename T::Type;
-        if (value > std::numeric_limits<Type>::max() ||
-            value < std::numeric_limits<Type>::min())
-            throw std::runtime_error("Predictor value out of range");
+        if (
+            value > std::numeric_limits<Type>::max() ||
+            value < std::numeric_limits<Type>::min()
+        ) {
+            std::ostringstream msg;
+            msg << "Predictor value out of range (" <<
+            value << "; [" <<
+            static_cast<int64_t>(std::numeric_limits<Type>::min()) << ", " <<
+            static_cast<int64_t>(std::numeric_limits<Type>::max()) << "])";
+
+            throw std::runtime_error(msg.str().c_str());
+        }
         return predictor.predict_and_feed(static_cast<Type>(value));
     }
 
