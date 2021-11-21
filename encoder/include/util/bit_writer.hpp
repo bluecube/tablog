@@ -59,6 +59,9 @@ public:
 
     /// Pad the last unwritten byte with zeros and output it.
     void flush() {
+        if (bufferUsed == 0)
+            return;
+
         output(buffer);
         buffer = 0;
         bufferUsed = 0;
