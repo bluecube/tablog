@@ -54,6 +54,7 @@ TEST_CASE("BitWriter") {
     SECTION("Upper bit masking") {
         bw.write(0xffu, 1);
         bw.flush();
+        REQUIRE(data == "\x01");
     }
 
     SECTION("Write 8 bits bit by bit") {
