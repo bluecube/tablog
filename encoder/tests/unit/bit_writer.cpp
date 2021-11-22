@@ -64,4 +64,11 @@ TEST_CASE("BitWriter") {
         }
         REQUIRE(data == "A");
     }
+
+    SECTION("Byte pattern") {
+        for (uint32_t i = 'a'; i < 'h'; ++i)
+            bw.write(i, 8);
+
+        REQUIRE(data == "abcdefg");
+    }
 }
