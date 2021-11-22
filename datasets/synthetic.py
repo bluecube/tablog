@@ -179,7 +179,7 @@ if __name__ == "__main__":
     import numpy
 
     length = 2000000
-    it = random_piecewise_constant("s8", 50000, length)
+    it = minor7chord("s8", 50000, length)
 
     a = numpy.fromiter((x[0] for x in it), dtype=numpy.int64, count=length)
 
