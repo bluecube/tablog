@@ -14,6 +14,19 @@ except ImportError:
 
 
 def all_datasets(length):
+    types = ["s8", "u16", "s64"]  # Not completely random selection
+
+    if length == 0:
+        # Don't generate many identical datasets
+        for t in types:
+            yield dataset.Dataset(
+                f'empty("{t}")',
+                ["value"],
+                [t],
+                lambda: iter([]),
+                0
+            )
+
     dataset_name_suffix = f", length={length})"
     currentmod = sys.modules[__name__]
 
@@ -22,7 +35,7 @@ def all_datasets(length):
             continue
         if func is all_datasets:
             continue
-        for t in ["s8", "u16", "s64"]:  # Not completely random selection
+        for t in types:
             dataset_name_prefix = f'{func_name}("{t}"'
             if "period" in inspect.signature(func).parameters:
                 for period in [100, 10000]:
@@ -168,10 +181,6 @@ def unexpected_jump(t, period, length):
             yield [int(gen.integers(10, 20))]
 
 
-def empty(t, _):
-    return iter(())
-
-
 if __name__ == "__main__":
     dataset.show_content(all_datasets(length=100))
 
@@ -179,7 +188,7 @@ if __name__ == "__main__":
     import numpy
 
     length = 2000000
-    it = minor7chord("s8", 50000, length)
+    it = random_piecewise_constant("s8", 50000, length)
 
     a = numpy.fromiter((x[0] for x in it), dtype=numpy.int64, count=length)
 
