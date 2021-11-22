@@ -9,36 +9,27 @@ except ImportError:
 
 
 class _CsvDataIterCallable:
-    def __init__(self, file_path, converters, data_slice):
+    def __init__(self, file_path, converters):
         self._file_path = file_path
         self._converters = converters
-        self._slice = data_slice
 
     def __call__(self):
-        return _CsvDataIterator(self._file_path, self._converters, self._slice)
-
-    def sliced(self, i):
-        s = slice(i, i + 1)
-        return _CsvDataIterCallable(self._file_path, self._converters, s)
+        return _CsvDataIterator(self._file_path, self._converters)
 
 
 class _CsvDataIterator:
-    def __init__(self, file_path, converters, data_slice):
+    def __init__(self, file_path, converters):
         self._fp = open(file_path)
         next(self._fp)
         next(self._fp)
         self._converters = converters
-        self._slice = data_slice
 
     def __iter__(self):
         return self
 
     def __next__(self):
         raw_fields = next(self._fp).split(",")
-        sliced_converters = self._converters[self._slice]
-        sliced_fields = raw_fields[self._slice]
-        converted = [converter(x) for converter, x in zip(sliced_converters, sliced_fields)]
-        return converted
+        return [converter(x) for converter, x in zip(self._converters, raw_fields)]
 
 
 def _all_csv_files():
@@ -84,7 +75,7 @@ def _open_dataset(csv_path, csv_name):
             field_types.append(converted_t)
             converters.append(converter)
 
-    iter_callable = _CsvDataIterCallable(csv_path, converters, slice(None))
+    iter_callable = _CsvDataIterCallable(csv_path, converters)
 
     return dataset.Dataset(
         csv_name,
@@ -97,18 +88,6 @@ def _open_dataset(csv_path, csv_name):
 def all_datasets():
     for csv_name, csv_path in _all_csv_files():
         yield _open_dataset(csv_path, csv_name)
-
-
-def individual_datasets():
-    for d in all_datasets():
-        for i in range(len(d.field_names)):
-            yield dataset.Dataset(
-                d.name + "#" + d.field_names[i],
-                ["value"],
-                [d.field_types[i]],
-                d.iter_callable.sliced(i),
-                d.length
-            )
 
 
 if __name__ == "__main__":
