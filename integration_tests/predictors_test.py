@@ -31,8 +31,14 @@ def _cpp_errors(dataset, predictor_name):
 )
 @pytest.mark.parametrize(
     "dataset",
-    list(datasets.individual_datasets(True)),
-    ids=lambda dataset: dataset.name
+    [
+        pytest.param(
+            dataset,
+            id=dataset.name,
+            marks=pytest.mark.slow if dataset.length is None or dataset.length > 100 else []
+        )
+        for dataset in datasets.individual_datasets(True)
+    ]
 )
 def test_equality(predictor, dataset):
     """ Check that python and C++ predictors generate the same values """
