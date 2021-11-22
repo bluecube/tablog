@@ -30,14 +30,16 @@ def all_datasets(length):
                         f"{dataset_name_prefix}, {period}{dataset_name_suffix}",
                         ["value"],
                         [t],
-                        functools.partial(func, t, period, length)
+                        functools.partial(func, t, period, length),
+                        length
                     )
             else:
                 yield dataset.Dataset(
                     dataset_name_prefix + dataset_name_suffix,
                     ["value"],
                     [t],
-                    functools.partial(func, t, length)
+                    functools.partial(func, t, length),
+                    length
                 )
 
 

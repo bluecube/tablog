@@ -86,7 +86,12 @@ def _open_dataset(csv_path, csv_name):
 
     iter_callable = _CsvDataIterCallable(csv_path, converters, slice(None))
 
-    return dataset.Dataset(csv_name, field_names, field_types, iter_callable)
+    return dataset.Dataset(
+        csv_name,
+        field_names, field_types,
+        iter_callable,
+        None,  # Unknown length
+    )
 
 
 def all_datasets():
@@ -102,6 +107,7 @@ def individual_datasets():
                 ["value"],
                 [d.field_types[i]],
                 d.iter_callable.sliced(i),
+                d.length
             )
 
 

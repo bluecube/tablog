@@ -1,5 +1,6 @@
 import dataclasses
 import collections
+import typing
 
 
 @dataclasses.dataclass
@@ -8,6 +9,7 @@ class Dataset:
     field_names: list[str]
     field_types: list[str]
     iter_callable: collections.abc.Callable[[], collections.abc.Iterator[list[int]]]
+    length: typing.Optional[int]
 
     def __iter__(self):
         return self.iter_callable()
