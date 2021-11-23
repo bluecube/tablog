@@ -72,4 +72,59 @@ TEST_CASE("BitWriter") {
 
         REQUIRE(data == "abcdefg");
     }
+
+    SECTION("Bit pattern") {
+        auto generateExpected = [&](uint32_t patternLength) {
+            const auto fullBytes = patternLength / 8u;
+            std::string ret(fullBytes, '\xaa');
+
+            assert(ret.size() == fullBytes);
+
+            const auto remainingBits = patternLength - 8u * fullBytes;
+            if (remainingBits)
+                ret.push_back(0xaau & ((1u << remainingBits) - 1u));
+
+            assert(ret.size() == (patternLength + 7u) / 8u);
+
+            return ret;
+        };
+
+        SECTION("Single bits") {
+            const auto patternLength = GENERATE(Catch::Generators::take(
+                100,
+                Catch::Generators::random(1u, 2048u)
+            ));
+
+            const auto expected = generateExpected(patternLength);
+
+            for (uint32_t i = 0; i < patternLength; ++i)
+                bw.write_bit(i);
+            bw.flush();
+
+            REQUIRE(data == expected);
+        }
+
+        SECTION("Chunks") {
+            auto writeLength = GENERATE(Catch::Generators::range(1u, 8u));
+            auto writeCount = GENERATE(Catch::Generators::take(
+                20,
+                Catch::Generators::random(1u, 100u)
+            ));
+
+            auto writeData = 0x55u >> (8u - writeLength);
+
+            const auto expected = generateExpected(writeCount * writeLength);
+
+
+            for (uint32_t i = 0; i < writeCount; ++i) {
+                bw.write(writeData, writeLength);
+                if (writeLength % 2)
+                    writeData = ~writeData; // Invert the writeData if it's odd length
+            }
+            bw.flush();
+
+            REQUIRE(data == expected);
+        }
+    }
+
 }

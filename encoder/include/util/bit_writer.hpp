@@ -23,7 +23,6 @@ public:
         static_assert(!std::is_signed_v<T>, "Only unsigned types can be written");
         assert(bitCount <= std::numeric_limits<T>::digits);
 
-
         if (bitCount + bufferUsed < outputBitSize) {
             // Not enough data to output a byte
             buffer |= data << bufferUsed;
