@@ -16,14 +16,16 @@ class SubprocessFailed(RuntimeError):
     def __str__(self):
         return f"""Encoder failed with return code {self.returncode!r}
 command: {self.command!r}
-stderr: """ + "\n".join(map(repr, self.stderr.split(b"\n")))
+stderr: """ + "\n".join(
+            map(repr, self.stderr.split(b"\n"))
+        )
 
 
 def _subprocess(command, input_iterator):
-    """ Run a subprocess, yield its stdout.
+    """Run a subprocess, yield its stdout.
     Feeds bytes from input_iterator to the process in a separate thread.
     Ignores stderr if the process returns without error, but includes it in an
-    error message if it returns with different status. """
+    error message if it returns with different status."""
 
     def feeder(proc, input_iterator):
         try:
@@ -100,8 +102,8 @@ def _serialize_dataset(dataset):
 
 @pytest.fixture(scope="session")  # Minimize the attempts to recompile the encoder
 def compiled_encoder():
-    """ Make sure that the encoder tests are compiled.
-    Return dictionary {test_name: binary_path}. """
+    """Make sure that the encoder tests are compiled.
+    Return dictionary {test_name: binary_path}."""
 
     # TODO: Actually run the scons build
     # TODO: Parametrize by different platforms
@@ -114,7 +116,7 @@ def compiled_encoder():
 
     for x in ["unit", "csv", "stream_encoder"]:
         path = os.path.join(tests_path, x, x + "_tests")
-        assert(os.path.exists(path))
+        assert os.path.exists(path)
         paths[x] = path
 
     return paths
@@ -122,7 +124,7 @@ def compiled_encoder():
 
 @pytest.fixture
 def csv_encoder(compiled_encoder):
-    """ Provides a callable that uses the csv_encoder mechanism to encode a dataset. """
+    """Provides a callable that uses the csv_encoder mechanism to encode a dataset."""
 
     path = compiled_encoder["csv"]
 
@@ -139,8 +141,8 @@ def csv_encoder(compiled_encoder):
 
 @pytest.fixture
 def csv_encoder_json(csv_encoder):
-    """ Provides a callable that uses the csv_encoder mechanism to encode a dataset
-    using the json format, yielding parsed json object for each output line """
+    """Provides a callable that uses the csv_encoder mechanism to encode a dataset
+    using the json format, yielding parsed json object for each output line"""
 
     def csv_encoder_json(dataset, predictor=None):
         unprocessed = b""
@@ -186,16 +188,16 @@ class _StreamEncoder:
 
     def call(self, function, *args):
         with self._cond:
-            self._function_call = \
-                self._encode(function) + \
-                b"," + \
-                b",".join(self._encode(arg) for arg in args) + \
-                b"\n"
+            self._function_call = (
+                self._encode(function)
+                + b","
+                + b",".join(self._encode(arg) for arg in args)
+                + b"\n"
+            )
             self._cond.notify_all()
 
             if not self._cond.wait_for(
-                lambda: self._response is not None or self._quit_flag,
-                timeout=1
+                lambda: self._response is not None or self._quit_flag, timeout=1
             ):
                 raise RuntimeError("stream encoder binary response timed out")
 
@@ -220,7 +222,7 @@ class _StreamEncoder:
                 self._cond.wait()
 
     def _output_loop(self):
-        """ Reads output from the subprocess, parses it. """
+        """Reads output from the subprocess, parses it."""
         data = b""
         try:
             while True:  # We stop when the subprocess closes its stdout
@@ -234,7 +236,7 @@ class _StreamEncoder:
 
                 payload_bytes = int(data[:newline_pos].decode("utf-8"))
 
-                data = data[newline_pos + 1:]
+                data = data[newline_pos + 1 :]
 
                 while len(data) < payload_bytes:
                     block = next(self._subprocess_iterator)
@@ -258,7 +260,7 @@ class _StreamEncoder:
 
     @staticmethod
     def _encode(v):
-        """ Encode an argument for passing to the stream encoder binary """
+        """Encode an argument for passing to the stream encoder binary"""
         if isinstance(v, bytes):
             return v
         elif isinstance(v, str):

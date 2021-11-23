@@ -6,19 +6,14 @@ from decoder import predictors
 # Mapping C++ predictor names to python predictor factory
 cpp_equivalents = {
     "linear3": predictors.Linear.factory(3),
-    "linear12adapt":
-        predictors.Adapt.factory(
-            8,
-            predictors.Last.factory(),
-            predictors.LinearO2.factory()
-        ),
+    "linear12adapt": predictors.Adapt.factory(
+        8, predictors.Last.factory(), predictors.LinearO2.factory()
+    ),
 }
 
 
 @pytest.mark.parametrize(
-    "predictor",
-    cpp_equivalents.items(),
-    ids=cpp_equivalents.keys()
+    "predictor", cpp_equivalents.items(), ids=cpp_equivalents.keys()
 )
 @pytest.mark.parametrize(
     "dataset",
@@ -26,13 +21,15 @@ cpp_equivalents = {
         pytest.param(
             dataset,
             id=dataset.name,
-            marks=pytest.mark.slow if dataset.length is None or dataset.length > 100 else []
+            marks=pytest.mark.slow
+            if dataset.length is None or dataset.length > 100
+            else [],
         )
         for dataset in datasets.individual_datasets(True)
-    ]
+    ],
 )
 def test_equality(csv_encoder_json, predictor, dataset):
-    """ Check that python and C++ predictors generate the same values """
+    """Check that python and C++ predictors generate the same values"""
     predictor_name, predictor_factory = predictor
     predictor = predictor_factory(dataset.field_types[0])
 

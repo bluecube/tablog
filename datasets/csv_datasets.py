@@ -48,7 +48,7 @@ def _all_csv_files():
 
 
 def _parse_type(t):
-    """ Return tuple of converter function and converted type """
+    """Return tuple of converter function and converted type"""
     match = re.match(r"(?:f(\d+)\()?([us]\d\d?)\)?", t)
     if not match:
         raise ValueError("Type " + t + " doesn't match the regex")
@@ -79,7 +79,8 @@ def _open_dataset(csv_path, csv_name):
 
     return dataset.Dataset(
         csv_name,
-        field_names, field_types,
+        field_names,
+        field_types,
         iter_callable,
         None,  # Unknown length
     )

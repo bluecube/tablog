@@ -19,13 +19,7 @@ def all_datasets(length):
     if length == 0:
         # Don't generate many identical datasets
         for t in types:
-            yield dataset.Dataset(
-                f'empty("{t}")',
-                ["value"],
-                [t],
-                lambda: iter([]),
-                0
-            )
+            yield dataset.Dataset(f'empty("{t}")', ["value"], [t], lambda: iter([]), 0)
 
     dataset_name_suffix = f", length={length})"
     currentmod = sys.modules[__name__]
@@ -44,7 +38,7 @@ def all_datasets(length):
                         ["value"],
                         [t],
                         functools.partial(func, t, period, length),
-                        length
+                        length,
                     )
             else:
                 yield dataset.Dataset(
@@ -52,12 +46,12 @@ def all_datasets(length):
                     ["value"],
                     [t],
                     functools.partial(func, t, length),
-                    length
+                    length,
                 )
 
 
 def _parse_type(s):
-    """ Return semi-open interval of output vaues """
+    """Return semi-open interval of output vaues"""
     scale_bits = int(s[1:])
     if s[0] == "s":
         high = 1 << (scale_bits - 1)
@@ -80,7 +74,10 @@ def _remap(f, input_min, input_max, x_scale, t, length):
     y_scale = (high - low - 1) / (input_max - input_min)
     y_offset = low - input_min * y_scale
 
-    return ([max(low, min(round(f(i * x_scale) * y_scale + y_offset), high - 1))] for i in range(length))
+    return (
+        [max(low, min(round(f(i * x_scale) * y_scale + y_offset), high - 1))]
+        for i in range(length)
+    )
 
 
 def sine(t, period, length):
@@ -165,11 +162,11 @@ def count_up(t, length):
 
 
 def unexpected_jump(t, period, length):
-    """ Generate a value close to zero, with an occasional jump to maximum value.
+    """Generate a value close to zero, with an occasional jump to maximum value.
 
     Dataset like this is a critical failure point for vanilla Golomb encoder
     (the unexpected jump will cause a large missprediction, that gets encoded to
-    approximately as many bits as is the maximum value of the variable). """
+    approximately as many bits as is the maximum value of the variable)."""
     _, high = _parse_type(t)
     gen = _make_generator(t, period)
     next_jump = gen.geometric(1 / period)

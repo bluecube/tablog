@@ -7,6 +7,7 @@
 import sys
 import re
 
+
 def parse_g1(line):
     ret = {}
     for coord in "XYZE":
@@ -15,6 +16,7 @@ def parse_g1(line):
             ret[coord] = float(match[1])
 
     return ret
+
 
 print("x,y,z,e")
 print("f1000(u32),f1000(u32),f1000(u32),f1000(s64)")
@@ -32,5 +34,3 @@ with open(sys.argv[1], "r") as fp:
             state["E"] += g1["E"]
 
         print(",".join(f"{state[coord]:.03f}" for coord in "XYZE"))
-
-

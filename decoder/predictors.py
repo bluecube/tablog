@@ -1,8 +1,9 @@
 import itertools
 import numpy
 
+
 def parse_type(t):
-    """ Return closed interval of values """
+    """Return closed interval of values"""
     scale_bits = int(t[1:])
     if t[0] == "s":
         high = 1 << (scale_bits - 1)
@@ -27,10 +28,12 @@ class _PredictorFactory:
 
     def __str__(self):
         return (
-            self._cls.__name__ + "("
+            self._cls.__name__
+            + "("
             + ", ".join(
                 itertools.chain(
-                    (f"{x}" for x in self._args), ("{k}={v}" for k, v in self._kwargs.items())
+                    (f"{x}" for x in self._args),
+                    ("{k}={v}" for k, v in self._kwargs.items()),
                 )
             )
             + ")"
@@ -164,8 +167,8 @@ class DoubleExponential(_Predictor):
         return self._v + self._d
 
     def feed(self, value):
-        #self._v = s1 * value + (1 - s1) * (self._v + self._d)
-        #self._d = s2 * (self._v - old_v) + (1 - s2) * self_d
+        # self._v = s1 * value + (1 - s1) * (self._v + self._d)
+        # self._d = s2 * (self._v - old_v) + (1 - s2) * self_d
 
         v_change = self._d + (value - (self._v + self._d)) >> self._smoothing1
         self._v += v_change
@@ -189,7 +192,7 @@ class SmoothDeriv(_HistoryPredictor):
 
     def feed(self, value):
         new_derivative = value - self._history[0]
-        self._derivative += (new_derivative - self._rhs(self._derivative))
+        self._derivative += new_derivative - self._rhs(self._derivative)
         super().feed(value)
 
 
@@ -204,14 +207,16 @@ class SmoothDeriv2(_HistoryPredictor):
 
     def feed(self, value):
         new_second_derivative = value - 2 * self._history[1] + self._history[0]
-        self._second_derivative += (new_second_derivative - self._second_derivative) >> self._smoothing
+        self._second_derivative += (
+            new_second_derivative - self._second_derivative
+        ) >> self._smoothing
         super().feed(value)
 
 
 class Adapt(_Predictor):
     def __init__(self, t, selector_max, factory1, factory2):
         super().__init__()
-        self._selector = 0 # >= 0 -> p1, < 0 -> p2
+        self._selector = 0  # >= 0 -> p1, < 0 -> p2
         self._selector_max = selector_max
         self._p1 = factory1(t)
         self._p2 = factory2(t)

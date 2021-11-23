@@ -4,7 +4,7 @@ from . import synthetic
 
 
 def all_datasets(include_synthetic=True):
-    """ Yield all csv and synthetic datasets available """
+    """Yield all csv and synthetic datasets available"""
     yield from csv_datasets.all_datasets()
     if include_synthetic:
         for length in [0, 100, 5000]:
@@ -12,8 +12,8 @@ def all_datasets(include_synthetic=True):
 
 
 def individual_datasets(*args, **kwargs):
-    """ Yield all csv and synthetic datasets available, separated so that each
-    dataset has exactly one column """
+    """Yield all csv and synthetic datasets available, separated so that each
+    dataset has exactly one column"""
 
     # Causes each dataset to be completely loaded to memory before being split
     # into individual column datasets. This speeds up the processing, but
@@ -32,7 +32,7 @@ def individual_datasets(*args, **kwargs):
                     ["value"],
                     [ds.field_types[i]],
                     lambda i=i, data=data: ([fields[i]] for fields in data),
-                    len(data)
+                    len(data),
                 )
         else:
             for i in range(len(ds.field_names)):
@@ -41,5 +41,5 @@ def individual_datasets(*args, **kwargs):
                     ["value"],
                     [ds.field_types[i]],
                     lambda i=i, ds=ds: ([fields[i]] for fields in ds.iter_callable()),
-                    ds.length
+                    ds.length,
                 )
