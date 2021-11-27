@@ -28,6 +28,7 @@ cpp_equivalents = {
         for dataset in datasets.individual_datasets(True)
     ],
 )
+@pytest.mark.dataset
 def test_equality(csv_encoder_json, predictor, dataset):
     """Check that python and C++ predictors generate the same values"""
     predictor_name, predictor_factory = predictor
