@@ -41,8 +41,11 @@ std::optional<std::string_view> next_token(std::string_view& line) {
         return std::nullopt;
 
     const auto pos = line.find(',');
-    if (pos == line.npos)
-        return line;
+    if (pos == line.npos) {
+        auto ret = line;
+        line = std::string_view();
+        return ret;
+    }
 
     auto ret = line.substr(0, pos);
     line = line.substr(pos + 1);
