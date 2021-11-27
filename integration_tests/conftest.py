@@ -269,7 +269,7 @@ class _StreamEncoder:
             return str(v).encode("utf-8")
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def stream_encoder(compiled_encoder):
     with _StreamEncoder(compiled_encoder["stream_encoder"]) as se:
         yield se
