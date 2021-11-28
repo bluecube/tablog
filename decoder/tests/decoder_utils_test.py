@@ -1,7 +1,7 @@
 import pytest
 import hypothesis
 
-from decoder import bit_reader
+from decoder import decoder_utils
 
 
 @hypothesis.given(length=hypothesis.strategies.integers(1, 1024 * 8))
@@ -11,7 +11,7 @@ def test_bit_pattern(length):
     if remaining_bits:
         data += bytes([0xAA & ((1 << remaining_bits) - 1)])
 
-    br = bit_reader.BitReader([data])
+    br = decoder_utils.BitReader([data])
 
     expected = [(i & 1) for i in range(length)]
     bits = [br.read_bit() for _ in range(length)]
@@ -27,7 +27,7 @@ def test_bit_pattern(length):
 )
 def test_single_chunked_integer(data):
     joined_data = b"".join(data)
-    br = bit_reader.BitReader(data)
+    br = decoder_utils.BitReader(data)
 
     assert br.read(8 * len(joined_data)) == int.from_bytes(joined_data, "little", signed=False)
 
@@ -59,7 +59,7 @@ def test_single_chunked_integer(data):
 )
 def test_examples_matching_cpp(data, expected_reads):
     """ Test manually defined values and expected results matching the C++ bit writer test. """
-    br = bit_reader.BitReader([data])
+    br = decoder_utils.BitReader([data])
 
     for (expected, bit_count) in expected_reads:
         assert br.read(bit_count) == expected

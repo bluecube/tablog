@@ -1,6 +1,6 @@
 import hypothesis
 
-from decoder import bit_reader
+from decoder import decoder_utils
 
 
 @hypothesis.given(length=hypothesis.strategies.integers(1, 1024 * 8))
@@ -52,7 +52,7 @@ def test_bit_encode_decode(stream_encoder, data):
         *[x for block in blocks for x in block]
     )
 
-    br = bit_reader.BitReader([encoded])
+    br = decoder_utils.BitReader([encoded])
 
     for (expected, bit_count) in blocks:
         assert br.read(bit_count) == expected
