@@ -1,5 +1,7 @@
 import hypothesis
 
+from decoder import bit_reader
+
 
 @hypothesis.given(length=hypothesis.strategies.integers(1, 1024 * 8))
 def test_byte_pattern(stream_encoder, length):
@@ -10,7 +12,7 @@ def test_byte_pattern(stream_encoder, length):
 
 
 @hypothesis.given(length=hypothesis.strategies.integers(1, 1024 * 8))
-def test_bit_pattern_explicit(stream_encoder, length):
+def test_bit_pattern(stream_encoder, length):
     """Test the bit_pattern function, with an explicit expected value
     (not using bit reader from decoder)."""
     expected = b"\xaa" * (length // 8)
@@ -18,3 +20,39 @@ def test_bit_pattern_explicit(stream_encoder, length):
     if remaining_bits:
         expected += bytes([0xAA & ((1 << remaining_bits) - 1)])
     assert stream_encoder.call("bit_pattern", length) == expected
+
+
+@hypothesis.strategies.composite
+def bits_data_strategy(draw):
+    bits = draw(hypothesis.strategies.sampled_from([8, 16, 32, 64]))
+    lengths = draw(
+        hypothesis.strategies.lists(
+            hypothesis.strategies.integers(0, bits),
+            max_size=100
+        )
+    )
+    values = [
+        (draw(hypothesis.strategies.integers(0, 2**bit_len - 1)), bit_len)
+        for bit_len in lengths
+    ]
+
+    return (bits, values)
+
+
+@hypothesis.given(
+    data=bits_data_strategy(),
+    )
+def test_bit_encode_decode(stream_encoder, data):
+    """Test bit writer and bit reader by serializing and deserializing random data"""
+    wordsize, blocks = data
+
+    encoded = stream_encoder.call(
+        "write_bits",
+        f"u{wordsize}",
+        *[x for block in blocks for x in block]
+    )
+
+    br = bit_reader.BitReader([encoded])
+
+    for (expected, bit_count) in blocks:
+        assert br.read(bit_count) == expected

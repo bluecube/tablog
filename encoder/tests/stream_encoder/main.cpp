@@ -53,6 +53,23 @@ std::optional<std::string_view> next_token(std::string_view& line) {
 }
 
 template <typename T,  typename BW>
+void write_bits(BW& bitWriter, std::string_view args) {
+    if constexpr (!std::is_signed_v<T>) {
+        while (1) {
+            const auto tok = next_token(args);
+
+            if (!tok.has_value())
+                return;
+
+            const auto value = parse_num<T>(tok.value());
+            const auto bitCount = parse_num<T>(next_token(args).value());
+
+            bitWriter.write(value, bitCount);
+        }
+    }
+}
+
+template <typename T,  typename BW>
 void elias_gamma(BW& bitWriter, std::string_view args) {
     const T value = parse_num<T>(next_token(args).value());
 
@@ -104,7 +121,9 @@ int main() {
         else {
             const auto type = next_token(rest).value();
 
-            if (func == "elias_gamma")
+            if (func == "write_bits")
+                TYPED_CALL(write_bits, type, bitWriter, rest);
+            else if (func == "elias_gamma")
                 TYPED_CALL(elias_gamma, type, bitWriter, rest);
             else
                 throw std::runtime_error("Unknown func");

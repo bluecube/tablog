@@ -28,5 +28,3 @@ class BitReader:
 
         self._current_chunk = self._current_chunk | new_chunk << self._current_chunk_remaining
         self._current_chunk_remaining += new_chunk_remaining
-
-        print(b, self._current_chunk, self._current_chunk_remaining)

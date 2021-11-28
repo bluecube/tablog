@@ -57,7 +57,7 @@ def test_single_chunked_integer(data):
         ),
     ]
 )
-def test_matching_cpp(data, expected_reads):
+def test_examples_matching_cpp(data, expected_reads):
     """ Test manually defined values and expected results matching the C++ bit writer test. """
     br = bit_reader.BitReader([data])
 
