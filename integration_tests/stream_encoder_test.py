@@ -57,3 +57,20 @@ def test_bit_encode_decode(stream_encoder, data):
 
     for (expected, bit_count) in blocks:
         assert br.read(bit_count) == expected
+
+
+@hypothesis.given(data=hypothesis.strategies.data())
+def test_elias_gamma(stream_encoder, data):
+    """Test that elias gama encoder and decoder are inverse of each other."""
+    wordsize = data.draw(
+        hypothesis.strategies.sampled_from([8, 16, 32, 64]),
+        label="word size"
+        )
+    value = data.draw(
+        hypothesis.strategies.integers(0, 2**wordsize - 1),
+        label="value"
+    )
+
+    encoded = stream_encoder.call("elias_gamma", f"u{wordsize}", value)
+    decoded = decoder_utils.decode_elias_gamma(decoder_utils.BitReader([encoded]))
+    assert decoded == value

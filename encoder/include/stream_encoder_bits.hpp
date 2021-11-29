@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cstdint>
 #include <type_traits>
+#include <iostream>
 
 #include "util/misc.hpp"
 
@@ -14,11 +15,15 @@ template <typename T, typename BW>
 inline void elias_gamma(T n, BW& bitWriter) {
     static_assert(!std::is_signed_v<T>);
 
-    ++n;
+    ++n; // Add the offset to allow storing a zero
 
-    auto logN = int_log2(n); // TODO: use std::bit_width(n) - 1, once we bump to c++20
+    const auto logN = int_log2(n); // TODO: use std::bit_width(n) - 1, once we bump to c++20
     bitWriter.write(T(0), logN);
-    bitWriter.write(n, logN - 1);
+    bitWriter.write_bit(1);
+    bitWriter.write(n, logN); // skips the most significant bit in `n`
+
+    // Since we write numbers with least significant bit first, the
+    // stored number is "deformed".
 }
 
 /// Encode the number using adaptive exp-golomb coding.

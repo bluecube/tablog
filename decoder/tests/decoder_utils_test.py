@@ -68,3 +68,16 @@ def test_examples_matching_cpp(data, expected_reads):
 
     for (expected, bit_count) in expected_reads:
         assert br.read(bit_count) == expected
+
+
+@pytest.mark.parametrize(
+    "data,expected",
+    [
+        (b"\x01", 0),
+        (b"\x02", 1),
+        (b"\x06", 2),
+    ]
+)
+def test_decode_elias_gamma_manual(data, expected):
+    br = decoder_utils.BitReader([data])
+    assert decoder_utils.decode_elias_gamma(br) == expected

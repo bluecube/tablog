@@ -28,3 +28,10 @@ class BitReader:
 
         self._current_chunk = self._current_chunk | new_chunk << self._current_chunk_remaining
         self._current_chunk_remaining += new_chunk_remaining
+
+
+def decode_elias_gamma(bit_reader):
+    bits = 0
+    while bit_reader.read_bit() == 0:
+        bits += 1
+    return (1 << bits | bit_reader.read(bits)) - 1
