@@ -3,6 +3,10 @@ import hypothesis
 from decoder import decoder_utils
 
 
+def _br(binary_data):
+    return decoder_utils.BitReader([binary_data])
+
+
 @hypothesis.given(length=hypothesis.strategies.integers(1, 1024 * 8))
 def test_byte_pattern(stream_encoder, length):
     """ Mostly testing the stream encoder RPC mechanism.
@@ -26,7 +30,7 @@ def test_bit_pattern(stream_encoder, length):
 def test_bit_pattern2(stream_encoder, length):
     """Test the bit_pattern2 function, stressing the bit encoder and decoder a little. """
     encoded = stream_encoder.call("bit_pattern2", length)
-    br = decoder_utils.BitReader([encoded])
+    br = _br(encoded)
     decoded = [br.read(5) for _ in range(length)]
     expected = [i & 0x1f for i in range(length)]
 
@@ -53,8 +57,7 @@ def test_bit_encode_decode(stream_encoder, data):
         *[x for block in blocks for x in block]
     )
 
-    br = decoder_utils.BitReader([encoded])
-
+    br = _br(encoded)
     for (expected, bit_count) in blocks:
         assert br.read(bit_count) == expected
 
@@ -72,5 +75,5 @@ def test_elias_gamma(stream_encoder, data):
     )
 
     encoded = stream_encoder.call("elias_gamma", f"u{wordsize}", value)
-    decoded = decoder_utils.decode_elias_gamma(decoder_utils.BitReader([encoded]))
+    decoded = decoder_utils.decode_elias_gamma(_br(encoded))
     assert decoded == value
