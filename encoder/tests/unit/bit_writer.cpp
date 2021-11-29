@@ -42,6 +42,11 @@ TEST_CASE("BitWriter") {
         bw.write(0x9u, 4);
         bw.flush();
         REQUIRE(data == "\x09");
+
+        SECTION("Double flush is no-op") {
+            bw.flush();
+            REQUIRE(data == "\x09");
+        }
     }
 
     SECTION("Small write followed by large write followed by flush") {
@@ -127,4 +132,10 @@ TEST_CASE("BitWriter") {
         }
     }
 
+    SECTION("Empty write") {
+        bw.write(0x6u, 4);
+        bw.write(0xffu, 0);
+        bw.write(0x7u, 4);
+        REQUIRE(data == "\x76");
+    }
 }

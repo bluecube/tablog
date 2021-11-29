@@ -22,6 +22,17 @@ def test_bit_pattern(stream_encoder, length):
     assert stream_encoder.call("bit_pattern", length) == expected
 
 
+@hypothesis.given(length=hypothesis.strategies.integers(1, 1024))
+def test_bit_pattern2(stream_encoder, length):
+    """Test the bit_pattern2 function, stressing the bit encoder and decoder a little. """
+    encoded = stream_encoder.call("bit_pattern2", length)
+    br = decoder_utils.BitReader([encoded])
+    decoded = [br.read(5) for _ in range(length)]
+    expected = [i & 0x1f for i in range(length)]
+
+    assert decoded == expected
+
+
 @hypothesis.given(data=hypothesis.strategies.data())
 def test_bit_encode_decode(stream_encoder, data):
     """Test bit writer and bit reader by serializing and deserializing random data"""

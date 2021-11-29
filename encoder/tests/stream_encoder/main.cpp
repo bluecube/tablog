@@ -102,6 +102,14 @@ void bit_pattern(BW& bitWriter, std::string_view args) {
         bitWriter.write_bit(i & 1);
 }
 
+/// Test pattern consisting of non-byte aligned incrementing numbers
+template <typename BW>
+void bit_pattern2(BW& bitWriter, std::string_view args) {
+    const auto count = parse_num<uint32_t>(next_token(args).value());
+    for (uint32_t i = 0; i < count; ++i)
+        bitWriter.write(i & 0x1f, 5);
+}
+
 int main() {
     std::string lineStr;
     while(std::getline(std::cin, lineStr)) {
@@ -116,6 +124,8 @@ int main() {
             byte_pattern(bitWriter, rest);
         else if (func == "bit_pattern")
             bit_pattern(bitWriter, rest);
+        else if (func == "bit_pattern2")
+            bit_pattern2(bitWriter, rest);
         else if (func == "string")
             string(bitWriter, rest);
         else {

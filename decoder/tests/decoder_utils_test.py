@@ -36,6 +36,11 @@ def test_single_chunked_integer(data):
     "data,expected_reads",
     [
         pytest.param(
+            b"\x09",
+            [(0x9, 4)],
+            id="4 bits"
+        ),
+        pytest.param(
             b"\x76\x98",
             [(0x6, 4), (0x7, 4), (0x8, 4), (0x9, 4)],
             id="4x4 bits"
