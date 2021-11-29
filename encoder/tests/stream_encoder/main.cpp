@@ -54,18 +54,20 @@ std::optional<std::string_view> next_token(std::string_view& line) {
 
 template <typename T,  typename BW>
 void write_bits(BW& bitWriter, std::string_view args) {
-    if constexpr (!std::is_signed_v<T>) {
-        while (1) {
-            const auto tok = next_token(args);
+    while (1) {
+        const auto tok = next_token(args);
 
-            if (!tok.has_value())
-                return;
+        if (!tok.has_value())
+            return;
 
-            const auto value = parse_num<T>(tok.value());
-            const auto bitCount = parse_num<T>(next_token(args).value());
+        const auto value = parse_num<T>(tok.value());
+        const auto bitCount = parse_num<uint8_t>(next_token(args).value());
 
-            bitWriter.write(value, bitCount);
-        }
+        if (value < 0)
+            throw std::runtime_error("Write bits can't encode negative numbers");
+        const auto unsignedValue = static_cast<std::make_unsigned_t<T>>(value);
+
+        bitWriter.write(unsignedValue, bitCount);
     }
 }
 
