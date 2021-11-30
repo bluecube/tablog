@@ -116,7 +116,7 @@ TEST_CASE("BitWriter") {
                 Catch::Generators::random(1u, 100u)
             ));
 
-            auto writeData = 0x55u >> (8u - writeLength);
+            auto writeData = 0xaau & ((1 << writeLength) - 1);
 
             const auto expected = generateExpected(writeCount * writeLength);
 
