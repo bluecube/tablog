@@ -46,13 +46,17 @@ public:
     /// Absolute value here must already be shifted by tolerance -- this function
     /// expects minimal values of absErrorToEncode to be 1
     template <typename T>
-    void predictor_miss(bool predictionHigh, T absErrorToEncode, uint8_t& streamState) {
+    void predictor_miss(
+        bool predictionHigh,
+        T absErrorToEncode,
+        AdaptiveExpGolombEncoder<std::make_unsigned_t<T>>& errorEncoder
+    ) {
         assert(absErrorToEncode > 0);
 
         output.write_bit(0);
         output.write_bit(predictionHigh);
 
-        adaptive_exp_golomb(absErrorToEncode - 1, streamState, output);
+        errorEncoder.encode(absErrorToEncode - 1, output);
     }
 
     void end_of_stream() {

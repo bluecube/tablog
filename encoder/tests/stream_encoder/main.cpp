@@ -83,6 +83,25 @@ void elias_gamma(BW& bitWriter, std::string_view args) {
     tablog::detail::elias_gamma(unsignedValue, bitWriter);
 }
 
+template <typename T,  typename BW>
+void adaptive_exp_golomb(BW& bitWriter, std::string_view args) {
+    detail::AdaptiveExpGolombEncoder<std::make_unsigned_t<T>> encoder;
+    while (1) {
+        const auto tok = next_token(args);
+
+        if (!tok.has_value())
+            return;
+
+        const auto value = parse_num<T>(tok.value());
+
+        if (value < 0)
+            throw std::runtime_error("Write bits can't encode negative numbers");
+        const auto unsignedValue = static_cast<std::make_unsigned_t<T>>(value);
+
+        encoder.encode(unsignedValue, bitWriter);
+    }
+}
+
 template <typename BW>
 void string(BW& bitWriter, std::string_view args) {
     tablog::detail::encode_string(args.data(), bitWriter); // Assume that args is zero terminated
@@ -137,6 +156,8 @@ int main() {
                 TYPED_CALL(write_bits, type, bitWriter, rest);
             else if (func == "elias_gamma")
                 TYPED_CALL(elias_gamma, type, bitWriter, rest);
+            else if (func == "adaptive_exp_golomb")
+                TYPED_CALL(adaptive_exp_golomb, type, bitWriter, rest);
             else
                 throw std::runtime_error("Unknown func");
         }

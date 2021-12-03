@@ -46,8 +46,12 @@ void StatEncoder::predictor_hit() {
     ++hitCount;
 }
 
-void StatEncoder::predictor_miss(bool predictionHigh, uint64_t absErrorToEncode, uint8_t& streamState) {
-    streamEncoder.predictor_miss(predictionHigh, absErrorToEncode, streamState);
+void StatEncoder::predictor_miss(
+    bool predictionHigh,
+    uint64_t absErrorToEncode,
+    detail::AdaptiveExpGolombEncoder<uint64_t>& errorEncoder
+) {
+    streamEncoder.predictor_miss(predictionHigh, absErrorToEncode, errorEncoder);
 
     if (absErrorToEncode > maxMissDistance)
         absErrorToEncode = maxMissDistance;

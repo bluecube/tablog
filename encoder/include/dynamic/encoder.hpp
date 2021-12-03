@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <memory>
 
+#include "stream_encoder_bits.hpp"
+
 namespace tablog::dynamic {
 
 class EncoderInterface;
@@ -35,7 +37,11 @@ public:
     /// Sign and value are separate, because
     ///  - Values near zero might be removed for tolerance, requiring abs value anyway
     ///  - We avoid possible overflows with unsigned types
-    virtual void predictor_miss(bool predictionHigh, uint64_t absErrorToEncode, uint8_t& streamState) = 0;
+    virtual void predictor_miss(
+        bool predictionHigh,
+        uint64_t absErrorToEncode,
+        detail::AdaptiveExpGolombEncoder<uint64_t>& errorEncoder
+    ) = 0;
 
     /// Encode end of stream marker.
     virtual void end_of_stream() = 0;
@@ -59,8 +65,12 @@ public:
         encoder.predictor_hit();
     }
 
-    void predictor_miss(bool predictionHigh, uint64_t absErrorToEncode, uint8_t& streamState) override {
-        encoder.predictor_miss(predictionHigh, absErrorToEncode, streamState);
+    void predictor_miss(
+        bool predictionHigh,
+        uint64_t absErrorToEncode,
+        detail::AdaptiveExpGolombEncoder<uint64_t>& errorEncoder
+    ) override {
+        encoder.predictor_miss(predictionHigh, absErrorToEncode, errorEncoder);
     }
 
     /// Encode end of stream marker.

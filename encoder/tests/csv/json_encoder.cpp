@@ -35,7 +35,11 @@ void JsonEncoder::predictor_hit() {
     stream << "\n{ \"error\": 0 }";
 }
 
-void JsonEncoder::predictor_miss(bool predictionHigh, uint64_t absErrorToEncode, uint8_t&) {
+void JsonEncoder::predictor_miss(
+    bool predictionHigh,
+    uint64_t absErrorToEncode,
+    detail::AdaptiveExpGolombEncoder<uint64_t>&
+) {
     if (firstRecord)
         finalize_field_headers();
 

@@ -18,7 +18,11 @@ public:
     void header(uint_fast8_t version, uint_fast8_t fieldCount) override;
     void field_header(const char* fieldName, bool signedType, uint_fast8_t typeSize) override;
     void predictor_hit() override;
-    void predictor_miss(bool predictionHigh, uint64_t absErrorToEncode, uint8_t& encoderState) override;
+    void predictor_miss(
+        bool predictionHigh,
+        uint64_t absErrorToEncode,
+        detail::AdaptiveExpGolombEncoder<uint64_t>&
+    ) override;
     void end_of_stream() override;
 
 private:

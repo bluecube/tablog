@@ -2,6 +2,7 @@
 
 #include "predictors.hpp"
 #include "util/misc.hpp"
+#include "stream_encoder_bits.hpp"
 
 #include <cstdint>
 
@@ -30,13 +31,13 @@ public:
             encoder->predictor_hit();
         } else {
             const auto [absError, predictionHigh] = abs_diff(prediction, value);
-            encoder->predictor_miss(predictionHigh, absError, encoderState);
+            encoder->predictor_miss(predictionHigh, absError, errorEncoder);
         }
     }
 
 private:
     Predictor predictor;
-    uint8_t encoderState = 0;
+    AdaptiveExpGolombEncoder<std::make_unsigned_t<ValueT_>> errorEncoder;
 };
 
 }

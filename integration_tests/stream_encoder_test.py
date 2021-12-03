@@ -77,3 +77,27 @@ def test_elias_gamma(stream_encoder, data):
     encoded = stream_encoder.call("elias_gamma", f"u{wordsize}", value)
     decoded = decoder_utils.decode_elias_gamma(_br(encoded))
     assert decoded == value
+
+
+@hypothesis.given(data=hypothesis.strategies.data())
+def test_adaptive_exp_golomb(stream_encoder, data):
+    """Test the adaptive number format by serializing and deserializing random data"""
+    wordsize = data.draw(hypothesis.strategies.sampled_from([8, 16, 32, 64]))
+    values = data.draw(
+        hypothesis.strategies.lists(
+            hypothesis.strategies.integers(0, 2**wordsize - 1),
+            max_size=1024
+        )
+    )
+
+    encoded = stream_encoder.call(
+        "adaptive_exp_golomb",
+        f"u{wordsize}",
+        *[x for x in values]
+    )
+
+    br = _br(encoded)
+    adaptive_exp_golomb_decoder = decoder_utils.AdaptiveExpGolombDecoder(wordsize)
+    decoded = [adaptive_exp_golomb_decoder.decode(br) for _ in range(len(values))]
+
+    assert decoded == values

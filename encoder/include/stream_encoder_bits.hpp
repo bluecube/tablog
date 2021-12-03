@@ -27,7 +27,8 @@ inline void elias_gamma(T n, BW& bitWriter) {
 }
 
 /// Encode the number using adaptive exp-golomb coding.
-/// This function can encode zero values.
+/// The class holds state necessary for the encoding.
+/// Can encode zero values.
 ///
 /// Loosely based on
 /// Henrique S. Malvar: Adaptive Run-Length / Golomb-Rice Encoding of
@@ -39,23 +40,50 @@ inline void elias_gamma(T n, BW& bitWriter) {
 /// Eg. 64 bit value, that has low values and low prediction errors, suddenly
 /// jumping to INT64_MAX. This would cause the unary part of golomb coding to
 /// explode to 2**64 bits of length.
-///
-/// \arg streamState An auxiliary state variable that describes the typical
-///      range of the encoded values and adapts to the input values.
-template <typename T, typename BW>
-void adaptive_exp_golomb(T n, uint8_t& streamState, BW& bitWriter) {
+template <typename T>
+class AdaptiveExpGolombEncoder {
+public:
+    template <typename BW>
+    void encode(T n, BW& bitWriter) {
+        const T k = state >> stateShift;
+        const T p = n >> k;
+
+        elias_gamma(p, bitWriter); // Quotient; elias gamma can't encode zeros, therefore + 1
+        bitWriter.write(n, k); // Remainder (masking upper bits is performed by bit writer)
+
+        auto tmpState = state + p;
+
+        // Update the adaptive shift value
+        if (tmpState > maxState)
+            state = maxState;
+        else if (tmpState == 0)
+            state = 0;
+        else
+            state = tmpState - 1;
+    }
+
+    /// For debugging: Return the internal state of the encoder
+    uint8_t get_state() const { return state; }
+protected:
+    /// Determines how fast the adaptation reacts to value changes.
+    static constexpr uint_fast8_t stateShift = 2;
+
+    /// State for the encoder, initialized to a very rough estimate of noise level
+    uint8_t state = (sizeof(T)) << stateShift;
+
     static_assert(!std::is_signed_v<T>);
+    static_assert(
+        (std::numeric_limits<decltype(state)>::max() >> stateShift)
+        >=
+        std::numeric_limits<T>::digits - 1u,
+        "State after shift must be able to shift out all bits of T "
+        "(this assures that state never overflows)"
+    );
 
-    constexpr uint_fast8_t streamStateShift = 2;
-
-    const auto k = streamState >> streamStateShift;
-    const auto p = n >> k;
-
-    elias_gamma(p, bitWriter); // Quotient; elias gamma can't encode zeros, therefore + 1
-    bitWriter.write(n, k); // Remainder (masking upper bits is performed by bit writer)
-
-    streamState += p - 1; // Update the adaptive shift value
-}
+    /// Maximum value of state shift, makes sure that we don't over-shift more than
+    /// the full range of T worth of bits.
+    static constexpr uint_fast8_t maxState = (std::numeric_limits<T>::digits << stateShift) - 1;
+};
 
 /// Encode the string into the output as a sequence
 /// Null string is equivalent to empty string.
