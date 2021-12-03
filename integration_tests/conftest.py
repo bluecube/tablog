@@ -1,31 +1,28 @@
-import time
 import os.path
 import subprocess
 import json
 import threading
 import io
 import pytest
+import sys
 
 
 class SubprocessFailed(RuntimeError):
-    def __init__(self, command, returncode, stderr):
+    def __init__(self, command, returncode):
         self.command = command
         self.returncode = returncode
-        self.stderr = stderr
 
     def __str__(self):
-        return f"""Encoder failed with return code {self.returncode!r}
-command: {self.command!r}
-stderr: """ + "\n".join(
-            map(repr, self.stderr.split(b"\n"))
+        return (
+            f"Encoder failed with return code {self.returncode!r}"
+            f" (command: {self.command!r})"
         )
 
 
 def _subprocess(command, input_iterator):
     """Run a subprocess, yield its stdout.
     Feeds bytes from input_iterator to the process in a separate thread.
-    Ignores stderr if the process returns without error, but includes it in an
-    error message if it returns with different status."""
+    Writes stderr of the process to our own stderr."""
 
     def feeder(proc, input_iterator):
         try:
@@ -36,16 +33,13 @@ def _subprocess(command, input_iterator):
         finally:
             proc.stdin.close()
 
-    stderr = b""
-
     def stderr_reader(proc):
-        nonlocal stderr
         while True:
             block = proc.stderr.read(io.DEFAULT_BUFFER_SIZE)
             if not block:
                 break
             else:
-                stderr += block
+                sys.stderr.write(block.decode("utf-8"))
 
     proc = subprocess.Popen(
         command,
@@ -79,9 +73,7 @@ def _subprocess(command, input_iterator):
 
     if proc.returncode != 0:
         stderr_thread.join(3)
-        if stderr_thread.is_alive():
-            stderr = None
-        raise SubprocessFailed(command, proc.returncode, stderr)
+        raise SubprocessFailed(command, proc.returncode)
 
 
 def _serialize_csv_row(row):
