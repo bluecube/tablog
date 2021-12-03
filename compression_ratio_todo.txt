@@ -1,0 +1,11 @@
+List of things to check once we have a functional compression that can run on data.
+
+- Compare predictors in actual use
+    So far they have just been compared in an artificial test harness that
+    should provide decent accuracy, but never in real compression scenario
+
+- Verify adaptive exp golomb
+    - Maybe figure out a better way to encode the quotient
+        Current version uses elias gamma encoding that is 1 bit worse than unary on
+        value 1, which is the target that the adaptation is trying to reach.
+    - Verify the adaptation mechanism
