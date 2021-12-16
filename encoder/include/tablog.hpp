@@ -3,7 +3,6 @@
 #include "write_helper.h"
 #include "stream_encoder.h"
 #include "value_compressor.h"
-#include "details.h"
 
 #include <tuple>
 #include <cstdint>
