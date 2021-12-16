@@ -1,3 +1,0 @@
-Import("test_env", "tablog_lib")
-
-test_env.Program("csv_tests", Glob("**.cpp"), LIBS=[tablog_lib])

@@ -106,49 +106,12 @@ def compiled_encoder():
 
     paths = {}
 
-    for x in ["unit", "csv", "stream_encoder"]:
+    for x in ["unit", "stream_encoder"]:
         path = os.path.join(tests_path, x, x + "_tests")
         assert os.path.exists(path)
         paths[x] = path
 
     return paths
-
-
-@pytest.fixture
-def csv_encoder(compiled_encoder):
-    """Provides a callable that uses the csv_encoder mechanism to encode a dataset."""
-
-    path = compiled_encoder["csv"]
-
-    def csv_encoder(dataset, encoder="stream", predictor=None):
-        command = [path, "-", "-", encoder]
-
-        if predictor is not None:
-            command.append(predictor)
-
-        yield from _subprocess(command, _serialize_dataset(dataset))
-
-    return csv_encoder
-
-
-@pytest.fixture
-def csv_encoder_json(csv_encoder):
-    """Provides a callable that uses the csv_encoder mechanism to encode a dataset
-    using the json format, yielding parsed json object for each output line"""
-
-    def csv_encoder_json(dataset, predictor=None):
-        unprocessed = b""
-        for block in csv_encoder(dataset, encoder="json", predictor=predictor):
-            split = block.split(b"\n")
-            split[0] = unprocessed + split[0]
-            for line in split[:-1]:
-                yield json.loads(line)
-            unprocessed = split[-1]
-
-        if unprocessed:
-            yield json.loads(unprocessed)
-
-    return csv_encoder_json
 
 
 class _StreamEncoder:
