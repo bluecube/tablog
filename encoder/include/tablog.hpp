@@ -1,42 +1,39 @@
 #pragma once
 
-#include "write_helper.h"
-#include "stream_encoder.h"
-#include "value_compressor.h"
+#include "stream_encoder.hpp"
+#include "value_compressor.hpp"
 
 #include <tuple>
 #include <cstdint>
+#include <utility>
 
 namespace tablog {
 
-namespace detail {
-
-template <typename StreamEncoder, typename... ValueTs>
-class TablogInternal {
+template <typename OutputF, typename... ValueTs>
+class Tablog {
 public:
     static constexpr uint_fast16_t formatVersion = 1;
 
     /// Write the header
     template <typename... EncoderArgs>
-    TablogInternal(EncoderArgs&&... encoderArgs)
-      : encoder(std::forward(encoderArgs)...)
+    Tablog(EncoderArgs&&... encoderArgs)
+      : encoder(std::forward<EncoderArgs>(encoderArgs)...)
     {
-        // Tablog header:
         encoder.header(formatVersion, sizeof...(ValueTs));
     }
 
-    ~TablogInternal() {
+    ~Tablog() {
         close();
     }
 
     /// Write values to the log.
     void write(const ValueTs&... values) {
-        detail::WriteHelper<
-            0,
-            decltype(valueCompressors),
-            decltype(encoder),
-            ValueTs...
-        >::write(valueCompressors, encoder, values...);
+        std::apply(
+            [&](auto&... compressors) {
+                (compressors.write(values, encoder), ...);
+            },
+            valueCompressors
+        );
     }
 
     void close() {
@@ -50,14 +47,11 @@ public:
 private:
     bool closed;
     detail::StreamEncoder<OutputF> encoder;
-    std::tuple<detail::ValueCompressor<ValueTs>...> valueCompressors;
+    std::tuple<
+        detail::ValueCompressor<
+            ValueTs
+        >...
+    > valueCompressors;
 };
-
-namespace tablog {
-
-/// This is the main class of the tablog library, with compile time interface and
-/// default encoder.
-template <typename OutputF, typename... ValueTs>
-using Tablog = detail::TablogInternal<detail::StreamEncoder<OutputF>, ValueTs...>;
 
 }
