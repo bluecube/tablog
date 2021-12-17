@@ -1,56 +1,15 @@
+#include "../common.hpp"
+
 #include "stream_encoder.hpp"
 #include "util/bit_writer.hpp"
 #include "stream_encoder_bits.hpp"
 
 #include <iostream>
-#include <cstdlib>
 #include <string>
 #include <string_view>
-#include <charconv>
-#include <optional>
 
 using namespace tablog;
 
-#define TYPED_CALL(fun, type, ...) \
-    do { \
-        if      (type == "u8")  fun<uint8_t> (__VA_ARGS__); \
-        else if (type == "s8")  fun<int8_t>  (__VA_ARGS__); \
-        else if (type == "u16") fun<uint16_t>(__VA_ARGS__); \
-        else if (type == "s16") fun<int16_t> (__VA_ARGS__); \
-        else if (type == "u32") fun<uint32_t>(__VA_ARGS__); \
-        else if (type == "s32") fun<int32_t> (__VA_ARGS__); \
-        else if (type == "u64") fun<uint64_t>(__VA_ARGS__); \
-        else if (type == "s64") fun<int64_t> (__VA_ARGS__); \
-        else throw std::runtime_error("Unsupported field type for typed function call"); \
-    } while(0)
-
-template <typename T>
-T parse_num(std::string_view s) {
-    T value;
-    const auto end = s.data() + s.size();
-    const auto convResult = std::from_chars(s.data(), end, value, 10);
-    if (convResult.ptr != end)
-        throw std::runtime_error("Number parsing failed");
-
-    return value;
-}
-
-/// Return a view of a line until the next coma separator or nullopt for the last item
-std::optional<std::string_view> next_token(std::string_view& line) {
-    if (!line.size())
-        return std::nullopt;
-
-    const auto pos = line.find(',');
-    if (pos == line.npos) {
-        auto ret = line;
-        line = std::string_view();
-        return ret;
-    }
-
-    auto ret = line.substr(0, pos);
-    line = line.substr(pos + 1);
-    return ret;
-}
 
 template <typename T,  typename BW>
 void write_bits(BW& bitWriter, std::string_view args) {
