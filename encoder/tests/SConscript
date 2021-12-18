@@ -5,4 +5,5 @@ test_env.AppendUnique(
 )
 
 SConscript("unit/SConscript")
+SConscript("csv/SConscript")
 SConscript("stream_encoder/SConscript")
