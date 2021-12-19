@@ -1,5 +1,4 @@
 import itertools
-import numpy
 
 
 def parse_type(t):
