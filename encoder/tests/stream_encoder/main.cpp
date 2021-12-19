@@ -3,6 +3,7 @@
 #include "stream_encoder.hpp"
 #include "util/bit_writer.hpp"
 #include "stream_encoder_bits.hpp"
+#include "predictors.hpp"
 
 #include <iostream>
 #include <string>
@@ -22,29 +23,19 @@ void write_bits(BW& bitWriter, std::string_view args) {
         const auto value = parse_num<T>(tok.value());
         const auto bitCount = parse_num<uint8_t>(next_token(args).value());
 
-        if (value < 0)
-            throw std::runtime_error("Write bits can't encode negative numbers");
-        const auto unsignedValue = static_cast<std::make_unsigned_t<T>>(value);
-
-        bitWriter.write(unsignedValue, bitCount);
+        bitWriter.write(value, bitCount);
     }
 }
 
 template <typename T,  typename BW>
 void elias_gamma(BW& bitWriter, std::string_view args) {
-    const T value = parse_num<T>(next_token(args).value());
-
-    if (value < 0)
-        throw std::runtime_error("Elias Gamma can't encode negative numbers");
-
-    const auto unsignedValue = static_cast<std::make_unsigned_t<T>>(value);
-
-    tablog::detail::elias_gamma(unsignedValue, bitWriter);
+    const auto value = parse_num<T>(next_token(args).value());
+    tablog::detail::elias_gamma(value, bitWriter);
 }
 
 template <typename T,  typename BW>
 void adaptive_exp_golomb(BW& bitWriter, std::string_view args) {
-    detail::AdaptiveExpGolombEncoder<std::make_unsigned_t<T>> encoder;
+    detail::AdaptiveExpGolombEncoder<T> encoder;
     while (1) {
         const auto tok = next_token(args);
 
@@ -52,12 +43,7 @@ void adaptive_exp_golomb(BW& bitWriter, std::string_view args) {
             return;
 
         const auto value = parse_num<T>(tok.value());
-
-        if (value < 0)
-            throw std::runtime_error("Write bits can't encode negative numbers");
-        const auto unsignedValue = static_cast<std::make_unsigned_t<T>>(value);
-
-        encoder.encode(unsignedValue, bitWriter);
+        encoder.encode(value, bitWriter);
     }
 }
 
@@ -112,11 +98,11 @@ int main() {
             const auto type = next_token(rest).value();
 
             if (func == "write_bits")
-                TYPED_CALL(write_bits, type, bitWriter, rest);
+                TYPED_CALL_UNSIGNED(write_bits, type, bitWriter, rest);
             else if (func == "elias_gamma")
-                TYPED_CALL(elias_gamma, type, bitWriter, rest);
+                TYPED_CALL_UNSIGNED(elias_gamma, type, bitWriter, rest);
             else if (func == "adaptive_exp_golomb")
-                TYPED_CALL(adaptive_exp_golomb, type, bitWriter, rest);
+                TYPED_CALL_UNSIGNED(adaptive_exp_golomb, type, bitWriter, rest);
             else
                 throw std::runtime_error("Unknown func");
         }

@@ -35,6 +35,16 @@ static constexpr std::array<std::string_view, sizeof...(Ts)> type_names = {type_
         else throw std::runtime_error("Unsupported field type for typed function call"); \
     } while(0)
 
+#define TYPED_CALL_UNSIGNED(fun, type, ...) \
+    do { \
+        if      (type == "u8")  fun<uint8_t> (__VA_ARGS__); \
+        else if (type == "u16") fun<uint16_t>(__VA_ARGS__); \
+        else if (type == "u32") fun<uint32_t>(__VA_ARGS__); \
+        else if (type == "u64") fun<uint64_t>(__VA_ARGS__); \
+        else throw std::runtime_error("Unsupported field type for typed function call"); \
+    } while(0)
+
+
 template <typename T>
 static inline T parse_num(std::string_view s) {
     T value;
