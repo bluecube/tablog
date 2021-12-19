@@ -1,11 +1,18 @@
 from collections.abc import Iterable
+from typing import Union
 
 
 class BitReader:
-    def __init__(self, chunks: Iterable[bytes]):
-        self._it = iter(chunks)
+    def __init__(self, data: Union[bytes, Iterable[bytes]]):
         self._current_chunk = 0
         self._current_chunk_remaining = 0
+
+        if isinstance(data, bytes):
+            self._add_chunk(data)
+            self._it = iter([])
+        else:
+            print(data)
+            self._it = iter(data)
 
     def read(self, nbits):
         while nbits > self._current_chunk_remaining:
@@ -21,13 +28,15 @@ class BitReader:
     def read_bit(self):
         return self.read(1)
 
-    def _next_chunk(self):
-        b = next(self._it)
+    def _add_chunk(self, b):
         new_chunk = int.from_bytes(b, byteorder="little", signed=False)
         new_chunk_remaining = 8 * len(b)
 
         self._current_chunk = self._current_chunk | new_chunk << self._current_chunk_remaining
         self._current_chunk_remaining += new_chunk_remaining
+
+    def _next_chunk(self):
+        self._add_chunk(next(self._it))
 
 
 def decode_elias_gamma(bit_reader):
