@@ -15,8 +15,22 @@ class BitReader:
             self._it = iter(data)
 
     def read(self, nbits):
-        while nbits > self._current_chunk_remaining:
-            self._next_chunk()
+        """ Read n bits from the input, return as an int,
+        or None if there are no more bits in the input.
+
+        Raises ValueError when there are some bits left in the input,
+        but not enough to fulfil the request.  """
+        try:
+            while nbits > self._current_chunk_remaining:
+                self._next_chunk()
+        except StopIteration as e:
+            if self._current_chunk_remaining > 0:
+                raise ValueError(
+                    f"Tried to read {nbits} bits with only "
+                    f"{self._current_chunk_remaining} bits left in input"
+                ) from e
+            else:
+                return None
 
         mask = (1 << nbits) - 1
         ret = self._current_chunk & mask

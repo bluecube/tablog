@@ -87,6 +87,29 @@ def test_examples_matching_cpp(data, expected_reads, data_wrapper):
         assert br.read(bit_count) == expected
 
 
+def test_empty_bitreader_list():
+    br = decoder_utils.BitReader([])
+    assert br.read(3) is None
+
+
+def test_empty_bitreader_bytes():
+    br = decoder_utils.BitReader(b"")
+    assert br.read(3) is None
+
+
+def test_bitreader_broken():
+    br = decoder_utils.BitReader(b"a")
+    with pytest.raises(ValueError):
+        br.read(9)
+
+
+def test_bitreader_good_and_broken():
+    br = decoder_utils.BitReader(b"a")
+    assert br.read(7) == 0x61
+    with pytest.raises(ValueError):
+        br.read(2)
+
+
 @pytest.mark.parametrize(
     "data,expected",
     [
