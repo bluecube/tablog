@@ -45,7 +45,7 @@ public:
     }
 
 private:
-    bool closed;
+    bool closed = false;
     detail::StreamEncoder<OutputF> encoder;
     std::tuple<
         detail::ValueCompressor<
