@@ -17,7 +17,15 @@ inline void elias_gamma(T n, BW& bitWriter) {
 
     ++n; // Add the offset to allow storing a zero
 
-    const auto logN = int_log2(n); // TODO: use std::bit_width(n) - 1, once we bump to c++20
+    // TODO: Performance: If we allow working in larger types sometime in the future, this branch can be avoided.
+    const auto logN = [&]() {
+        if (n != 0)
+            return int_log2(n); // TODO: use std::bit_width(n) - 1, once we bump to c++20
+        else
+            // If the number had an overflow, we know that the logarithm depends
+            // only on the number of digits in the type.
+            return static_cast<uint_fast8_t>(std::numeric_limits<T>::digits);
+    }();
     bitWriter.write(T(0), logN);
     bitWriter.write_bit(1);
     bitWriter.write(n, logN); // skips the most significant bit in `n`
