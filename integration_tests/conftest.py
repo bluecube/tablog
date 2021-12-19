@@ -106,12 +106,24 @@ def compiled_encoder():
 
     paths = {}
 
-    for x in ["unit", "stream_encoder"]:
+    for x in ["unit", "csv", "stream_encoder"]:
         path = os.path.join(tests_path, x, x + "_tests")
         assert os.path.exists(path)
         paths[x] = path
 
     return paths
+
+
+@pytest.fixture
+def csv_encoder(compiled_encoder):
+    """Provides a callable that uses the csv_encoder mechanism to encode a dataset."""
+
+    path = compiled_encoder["csv"]
+
+    def csv_encoder(dataset):
+        yield from _subprocess([path], _serialize_dataset(dataset))
+
+    return csv_encoder
 
 
 class _StreamEncoder:
