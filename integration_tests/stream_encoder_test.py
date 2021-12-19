@@ -1,6 +1,8 @@
+import pytest
 import hypothesis
 
 from decoder import decoder_utils
+from decoder import predictors
 
 
 def _br(binary_data):
@@ -101,3 +103,46 @@ def test_adaptive_exp_golomb(stream_encoder, data):
     decoded = [adaptive_exp_golomb_decoder.decode(br) for _ in range(len(values))]
 
     assert decoded == values
+
+@pytest.mark.parametrize(
+    "predictor",
+    [
+        ("linear3", predictors.Linear.factory(3)),
+        ("linear12adapt", predictors.Adapt.factory(
+            8, predictors.Last.factory(), predictors.LinearO2.factory()
+        ))
+    ],
+    ids=lambda x: x[0]
+)
+@hypothesis.given(data=hypothesis.strategies.data())
+def test_predictors_equality(stream_encoder, predictor, data):
+    """Check that python and C++ predictors generate the same values"""
+
+    signed = data.draw(hypothesis.strategies.booleans())
+    wordsize = data.draw(hypothesis.strategies.sampled_from([8, 16, 32, 64]))
+    t = f"{'s' if signed else 'u'}{wordsize}"
+    wordsize_b = wordsize // 8
+
+    values = data.draw(hypothesis.strategies.lists(
+        hypothesis.strategies.integers(*predictors.parse_type(t)),
+        max_size=10000
+    ))
+
+    encoded = stream_encoder.call(
+        f"{predictor[0]}_predictor",
+        t,
+        *values
+    )
+    print(encoded)
+    decoded = [
+        int.from_bytes(encoded[i:i+wordsize_b], "little", signed=signed)
+        for i
+        in range(0, len(encoded), wordsize_b)
+    ]
+
+    predictor = predictor[1](t)
+    expected = []
+    for value in values:
+        expected.append(predictor.predict_and_feed(value))
+
+    assert expected == decoded

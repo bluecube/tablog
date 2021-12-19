@@ -76,6 +76,27 @@ void bit_pattern2(BW& bitWriter, std::string_view args) {
         bitWriter.write(i & 0x1f, 5);
 }
 
+template <typename PredictorT, typename T, typename BW>
+void predictor_internal(BW& bitWriter, std::string_view args) {
+    PredictorT predictor;
+    while (const auto tok = next_token(args)) {
+        const auto value = parse_num<T>(tok.value());
+        const auto prediction = predictor.predict_and_feed(value);
+        const auto unsignedPrediction = static_cast<std::make_unsigned_t<T>>(prediction);
+        bitWriter.write(unsignedPrediction);
+    }
+}
+
+template <typename T, typename BW>
+void linear3_predictor(BW& bitWriter, std::string_view args) {
+    predictor_internal<tablog::predictors::SimpleLinear<T, 3>, T, BW>(bitWriter, args);
+}
+
+template <typename T,  typename BW>
+void linear12adapt_predictor(BW& bitWriter, std::string_view args) {
+    predictor_internal<tablog::predictors::Linear12Adapt<T>, T, BW>(bitWriter, args);
+}
+
 int main() {
     std::string lineStr;
     while(std::getline(std::cin, lineStr)) {
@@ -103,6 +124,10 @@ int main() {
                 TYPED_CALL_UNSIGNED(elias_gamma, type, bitWriter, rest);
             else if (func == "adaptive_exp_golomb")
                 TYPED_CALL_UNSIGNED(adaptive_exp_golomb, type, bitWriter, rest);
+            else if (func == "linear3_predictor")
+                TYPED_CALL(linear3_predictor, type, bitWriter, rest);
+            else if (func == "linear12adapt_predictor")
+                TYPED_CALL(linear12adapt_predictor, type, bitWriter, rest);
             else
                 throw std::runtime_error("Unknown func");
         }
