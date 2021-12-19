@@ -62,9 +62,9 @@ public:
     }
 
 protected:
-    static constexpr int_fast8_t selectorLimit = 8;
-    T prev[2];
-    int_fast8_t selector = 0;
+    static constexpr int8_t selectorLimit = 8;
+    T prev[2] = {0, 0};
+    int8_t selector = 0;
 };
 
 }
