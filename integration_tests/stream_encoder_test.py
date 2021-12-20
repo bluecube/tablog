@@ -3,6 +3,7 @@ import hypothesis
 
 from decoder import decoder_utils
 from decoder import predictors
+from decoder.tests import strategies
 
 
 def _br(binary_data):
@@ -42,12 +43,12 @@ def test_bit_pattern2(stream_encoder, length):
 @hypothesis.given(data=hypothesis.strategies.data())
 def test_bit_encode_decode(stream_encoder, data):
     """Test bit writer and bit reader by serializing and deserializing random data"""
-    wordsize = data.draw(hypothesis.strategies.sampled_from([8, 16, 32, 64]))
+    int_type = data.draw(strategies.int_types(unsigned_only=True))
     blocks = [
         (data.draw(hypothesis.strategies.integers(0, 2**bit_len - 1)), bit_len)
         for bit_len in data.draw(
             hypothesis.strategies.lists(
-                hypothesis.strategies.integers(0, wordsize),
+                hypothesis.strategies.integers(0, int_type.bitsize),
                 max_size=100
             )
         )
@@ -55,7 +56,7 @@ def test_bit_encode_decode(stream_encoder, data):
 
     encoded = stream_encoder.call(
         "write_bits",
-        f"u{wordsize}",
+        str(int_type),
         *[x for block in blocks for x in block]
     )
 
@@ -64,42 +65,28 @@ def test_bit_encode_decode(stream_encoder, data):
         assert br.read(bit_count) == expected
 
 
-@hypothesis.given(data=hypothesis.strategies.data())
+@hypothesis.given(data=strategies.typed_values(unsigned_only=True))
 def test_elias_gamma(stream_encoder, data):
     """Test that elias gama encoder and decoder are inverse of each other."""
-    wordsize = data.draw(
-        hypothesis.strategies.sampled_from([8, 16, 32, 64]),
-        label="word size"
-        )
-    value = data.draw(
-        hypothesis.strategies.integers(0, 2**wordsize - 1),
-        label="value"
-    )
-
-    encoded = stream_encoder.call("elias_gamma", f"u{wordsize}", value)
+    int_type, value = data
+    encoded = stream_encoder.call("elias_gamma", str(int_type), value)
     decoded = decoder_utils.decode_elias_gamma(_br(encoded))
     assert decoded == value
 
 
-@hypothesis.given(data=hypothesis.strategies.data())
+@hypothesis.given(data=strategies.typed_lists(max_size=1024, unsigned_only=True))
 def test_adaptive_exp_golomb(stream_encoder, data):
     """Test the adaptive number format by serializing and deserializing random data"""
-    wordsize = data.draw(hypothesis.strategies.sampled_from([8, 16, 32, 64]))
-    values = data.draw(
-        hypothesis.strategies.lists(
-            hypothesis.strategies.integers(0, 2**wordsize - 1),
-            max_size=1024
-        )
-    )
+    int_type, values = data
 
     encoded = stream_encoder.call(
         "adaptive_exp_golomb",
-        f"u{wordsize}",
+        str(int_type),
         *[x for x in values]
     )
 
     br = _br(encoded)
-    adaptive_exp_golomb_decoder = decoder_utils.AdaptiveExpGolombDecoder(wordsize)
+    adaptive_exp_golomb_decoder = decoder_utils.AdaptiveExpGolombDecoder(int_type.bitsize)
     decoded = [adaptive_exp_golomb_decoder.decode(br) for _ in range(len(values))]
 
     assert decoded == values
@@ -114,33 +101,23 @@ def test_adaptive_exp_golomb(stream_encoder, data):
     ],
     ids=lambda x: x[0]
 )
-@hypothesis.given(data=hypothesis.strategies.data())
+@hypothesis.given(data=strategies.typed_lists(max_size=10000))
 def test_predictors_equality(stream_encoder, predictor, data):
     """Check that python and C++ predictors generate the same values"""
-
-    signed = data.draw(hypothesis.strategies.booleans())
-    wordsize = data.draw(hypothesis.strategies.sampled_from([8, 16, 32, 64]))
-    t = f"{'s' if signed else 'u'}{wordsize}"
-    wordsize_b = wordsize // 8
-
-    values = data.draw(hypothesis.strategies.lists(
-        hypothesis.strategies.integers(*predictors.parse_type(t)),
-        max_size=10000
-    ))
+    int_type, values = data
 
     encoded = stream_encoder.call(
         f"{predictor[0]}_predictor",
-        t,
+        str(int_type),
         *values
     )
     print(encoded)
     decoded = [
-        int.from_bytes(encoded[i:i+wordsize_b], "little", signed=signed)
-        for i
-        in range(0, len(encoded), wordsize_b)
+        int.from_bytes(encoded[i:i+int_type.bytesize()], "little", signed=int_type.signed)
+        for i in range(0, len(encoded), int_type.bytesize())
     ]
 
-    predictor = predictor[1](t)
+    predictor = predictor[1](str(int_type))
     expected = []
     for value in values:
         expected.append(predictor.predict_and_feed(value))
