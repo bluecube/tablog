@@ -1,6 +1,8 @@
 from collections.abc import Iterable
 from typing import Union
 
+from . import int_type
+
 
 class BitReader:
     def __init__(self, data: Union[bytes, Iterable[bytes]]):
@@ -71,3 +73,9 @@ class AdaptiveExpGolombDecoder:
         p = decode_elias_gamma(bit_reader)
         self._state = max(0, min(self._state + p - 1, self._max_state))
         return p << k | bit_reader.read(k)
+
+
+def decode_type(bit_reader):
+    signed = bool(bit_reader.read_bit())
+    size = 8 << bit_reader.read(2)
+    return int_type.IntType(signed, size)

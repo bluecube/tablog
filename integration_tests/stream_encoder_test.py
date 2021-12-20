@@ -91,6 +91,15 @@ def test_adaptive_exp_golomb(stream_encoder, data):
 
     assert decoded == values
 
+
+@hypothesis.given(int_type=strategies.int_types())
+def test_encode_type(stream_encoder, int_type):
+    encoded = stream_encoder.call("encode_type", str(int_type))
+    decoded = decoder_utils.decode_type(_br(encoded))
+    print(decoded)
+    assert decoded == int_type
+
+
 @pytest.mark.parametrize(
     "predictor",
     [

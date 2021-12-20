@@ -3,7 +3,6 @@
 #include <cassert>
 #include <cstdint>
 #include <type_traits>
-#include <iostream>
 
 #include "util/misc.hpp"
 
@@ -108,6 +107,18 @@ inline void encode_string(const char* str, BW& bitWriter) {
     }
     else
         number((uint8_fast_t)0);*/
+}
+
+template <typename BW>
+inline void encode_type(bool signedType, uint_fast8_t typeSize, BW& bitWriter) {
+    uint_fast8_t typeExponent = small_int_log2(typeSize);
+    bitWriter.write_bit(signedType);
+    bitWriter.write(typeExponent, 2);
+}
+
+template <typename T, typename BW>
+inline void encode_type(BW& bitWriter) {
+    encode_type(std::is_signed_v<T>, sizeof(T), bitWriter);
 }
 
 }

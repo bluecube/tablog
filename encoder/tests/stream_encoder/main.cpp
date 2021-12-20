@@ -76,6 +76,12 @@ void bit_pattern2(BW& bitWriter, std::string_view args) {
         bitWriter.write(i & 0x1f, 5);
 }
 
+template <typename T, typename BW>
+void encode_type(BW& bitWriter) {
+    std::cerr << type_name<T> << "\n";
+    tablog::detail::encode_type<T>(bitWriter);
+}
+
 template <typename PredictorT, typename T, typename BW>
 void predictor_internal(BW& bitWriter, std::string_view args) {
     PredictorT predictor;
@@ -124,6 +130,8 @@ int main() {
                 TYPED_CALL_UNSIGNED(elias_gamma, type, bitWriter, rest);
             else if (func == "adaptive_exp_golomb")
                 TYPED_CALL_UNSIGNED(adaptive_exp_golomb, type, bitWriter, rest);
+            else if (func == "encode_type")
+                TYPED_CALL(encode_type, type, bitWriter);
             else if (func == "linear3_predictor")
                 TYPED_CALL(linear3_predictor, type, bitWriter, rest);
             else if (func == "linear12adapt_predictor")

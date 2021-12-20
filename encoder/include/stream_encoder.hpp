@@ -31,9 +31,7 @@ public:
     /// same count as fieldCount in the header.
     void field_header(const char* fieldName, bool signedType, uint_fast8_t typeSize) {
         encode_string(fieldName, output);
-        uint_fast8_t typeExponent = small_int_log2(typeSize);
-        output.write_bit(signedType);
-        output.write(typeExponent, 2);
+        encode_type(signedType, typeSize, output);
     }
 
     /// Encode a predictor hit streak.
