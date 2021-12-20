@@ -126,7 +126,7 @@ def test_predictors_equality(stream_encoder, predictor, data):
         for i in range(0, len(encoded), int_type.bytesize())
     ]
 
-    predictor = predictor[1](str(int_type))
+    predictor = predictor[1](int_type)
     expected = []
     for value in values:
         expected.append(predictor.predict_and_feed(value))

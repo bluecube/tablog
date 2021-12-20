@@ -1,21 +1,6 @@
 import itertools
 
 
-def parse_type(t):
-    """Return closed interval of values"""
-    scale_bits = int(t[1:])
-    if t[0] == "s":
-        high = 1 << (scale_bits - 1)
-        low = -high
-    elif t[0] == "u":
-        low = 0
-        high = 1 << scale_bits
-    else:
-        raise ValueError("Type must be 's' or 'u' (have " + t + ")")
-
-    return (low, high - 1)
-
-
 class _PredictorFactory:
     def __init__(self, cls, args, kwargs):
         self._cls = cls
@@ -53,7 +38,7 @@ class _Predictor:
 class _HistoryPredictor(_Predictor):
     def __init__(self, t, history_length):
         self._history = [0] * history_length
-        (self._min, self._max) = parse_type(t)
+        (self._min, self._max) = t.minmax()
 
     def feed(self, value):
         self._history = self._history[1:] + [value]

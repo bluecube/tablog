@@ -35,6 +35,10 @@ class IntType:
         else:
             return range(0, 1 << self.bitsize)
 
+    def minmax(self):
+        r = self.range()
+        return (r.start, r.stop - 1)
+
     def clamp(self, value):
         minimum = self.min()
         if value < minimum:
