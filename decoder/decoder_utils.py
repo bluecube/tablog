@@ -11,7 +11,6 @@ class BitReader:
             self._add_chunk(data)
             self._it = iter([])
         else:
-            print(data)
             self._it = iter(data)
 
     def read(self, nbits):
