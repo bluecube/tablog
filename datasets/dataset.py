@@ -1,3 +1,5 @@
+from decoder import int_type
+
 import dataclasses
 import collections
 import typing
@@ -7,7 +9,7 @@ import typing
 class Dataset:
     name: str
     field_names: list[str]
-    field_types: list[str]
+    field_types: list[int_type.IntType]
     iter_callable: collections.abc.Callable[[], collections.abc.Iterator[list[int]]]
     length: typing.Optional[int]
 

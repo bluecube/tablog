@@ -16,7 +16,7 @@ def _serialize_csv_row(row):
 
 def _serialize_dataset(dataset):
     yield from _serialize_csv_row(dataset.field_names)
-    yield from _serialize_csv_row(dataset.field_types)
+    yield from _serialize_csv_row(map(str, dataset.field_types))
     for row in dataset:
         yield from _serialize_csv_row(map(str, row))
 

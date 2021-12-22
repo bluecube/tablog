@@ -6,6 +6,8 @@ import sys
 import hashlib
 import functools
 
+from decoder import int_type
+
 # Hackish workaround to be able to run this as a script too (rather than just as a part of a package)
 try:
     import dataset
@@ -14,7 +16,9 @@ except ImportError:
 
 
 def all_datasets(length):
-    types = ["s8", "u16", "s64"]  # Not completely random selection
+    types = [int_type.IntType.from_string(s) for s in ["u8", "s16", "u64", "s64"]]
+        # u8 is easy to analyze by looking at it, u64 and s64 have max range,
+        # s16 is just something in between.
 
     if length == 0:
         # Don't generate many identical datasets
@@ -50,32 +54,17 @@ def all_datasets(length):
                 )
 
 
-def _parse_type(s):
-    """Return semi-open interval of output vaues"""
-    scale_bits = int(s[1:])
-    if s[0] == "s":
-        high = 1 << (scale_bits - 1)
-        low = -high
-    elif s[0] == "u":
-        low = 0
-        high = 1 << scale_bits
-    else:
-        raise ValueError("Scale must be 's' or 'u'")
-
-    return (low, high)
-
-
 def _remap(f, input_min, input_max, x_scale, t, length):
     """Turn a function giving a value from <input_min, input_max> to an infinite iterator of
     integers between <0, 2**scale_bits> (signed == "u") or
     <-2**(scale_bits - 1), 2**(scale_bits - 1) - 1> (signed == "s")"""
-    low, high = _parse_type(t)
+    low, high = t.minmax()
 
-    y_scale = (high - low - 1) / (input_max - input_min)
+    y_scale = (high - low) / (input_max - input_min)
     y_offset = low - input_min * y_scale
 
     return (
-        [max(low, min(round(f(i * x_scale) * y_scale + y_offset), high - 1))]
+        [max(low, min(round(f(i * x_scale) * y_scale + y_offset), high))]
         for i in range(length)
     )
 
@@ -103,8 +92,8 @@ def minor7chord(t, period, length):
 
 
 def _random(gen, t, length):
-    low, high = _parse_type(t)
-    return ([int(gen.integers(low, high))] for _ in range(length))
+    r = t.range()
+    return ([int(gen.integers(r.start, r.stop))] for _ in range(length))
 
 
 def _make_generator(*args):
@@ -156,7 +145,7 @@ def random(t, length):
 
 
 def count_up(t, length):
-    low, high = _parse_type(t)
+    low, high = t.minmax()
     scale = high - low
     return ([(i % scale) + low] for i in range(length))
 
@@ -167,27 +156,11 @@ def unexpected_jump(t, period, length):
     Dataset like this is a critical failure point for vanilla Golomb encoder
     (the unexpected jump will cause a large missprediction, that gets encoded to
     approximately as many bits as is the maximum value of the variable)."""
-    _, high = _parse_type(t)
     gen = _make_generator(t, period)
     next_jump = gen.geometric(1 / period)
     for i in range(length):
         if i == next_jump:
-            yield [high - 1]
+            yield [t.max()]
             next_jump += gen.geometric(1 / period)
         else:
             yield [int(gen.integers(10, 20))]
-
-
-if __name__ == "__main__":
-    dataset.show_content(all_datasets(length=100))
-
-    import matplotlib.pyplot as plt
-    import numpy
-
-    length = 2000000
-    it = random_piecewise_constant("s8", 50000, length)
-
-    a = numpy.fromiter((x[0] for x in it), dtype=numpy.int64, count=length)
-
-    plt.plot(a)
-    plt.show()

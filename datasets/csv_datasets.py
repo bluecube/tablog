@@ -1,6 +1,8 @@
 import os.path
 import re
 
+from decoder import int_type
+
 # Hackish workaround to be able to run this as a script too (rather than just as a part of a package)
 try:
     import dataset
@@ -49,19 +51,20 @@ def _all_csv_files():
 
 def _parse_type(t):
     """Return tuple of converter function and converted type"""
+
     match = re.match(r"(?:f(\d+)\()?([us]\d\d?)\)?", t)
     if not match:
         raise ValueError("Type " + t + " doesn't match the regex")
 
     if match[1] is None:
-        return int, match[2]
+        return int, int_type.IntType.from_string(match[2])
     else:
         multiplier = float(match[1])
 
         def converter(s):
             return round(float(s) * multiplier)
 
-        return converter, match[2]
+        return converter, int_type.IntType.from_string(match[2])
 
 
 def _open_dataset(csv_path, csv_name):
@@ -94,6 +97,3 @@ def all_datasets():
 if __name__ == "__main__":
     print("All datasets")
     dataset.show_content(all_datasets())
-    print()
-    print("Individual datasets")
-    dataset.show_content(individual_datasets())
