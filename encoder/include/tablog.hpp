@@ -12,7 +12,7 @@ namespace tablog {
 template <typename OutputF, typename... ValueTs>
 class Tablog {
 public:
-    static constexpr uint_fast16_t formatVersion = 1;
+    static constexpr uint_fast16_t formatVersion = 0;
 
     /// Write the header
     template <typename... EncoderArgs>
