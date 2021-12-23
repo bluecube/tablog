@@ -20,6 +20,11 @@ public:
       : encoder(std::forward<EncoderArgs>(encoderArgs)...)
     {
         encoder.header(formatVersion, sizeof...(ValueTs));
+        (encoder.field_header(
+            nullptr,
+            std::is_signed_v<ValueTs>,
+            sizeof(ValueTs)
+        ), ...);
     }
 
     ~Tablog() {
