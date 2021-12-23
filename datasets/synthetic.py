@@ -19,6 +19,7 @@ def all_datasets(length):
         # Don't generate many identical datasets
         for t in types:
             yield dataset.Dataset(f'empty("{t}")', ["value"], [t], lambda: iter([]), 0)
+        return
 
     dataset_name_suffix = f", length={length})"
     currentmod = sys.modules[__name__]
