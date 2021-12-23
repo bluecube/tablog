@@ -75,6 +75,10 @@ class AdaptiveExpGolombDecoder:
         return p << k | bit_reader.read(k)
 
 
+def decode_string(bit_reader):
+    return ""
+
+
 def decode_type(bit_reader):
     signed = bool(bit_reader.read_bit())
     size = 8 << bit_reader.read(2)
