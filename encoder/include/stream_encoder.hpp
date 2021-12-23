@@ -59,6 +59,7 @@ public:
 
     void end_of_stream() {
         // TODO: Implement
+        output.flush();
     }
 
 private:
