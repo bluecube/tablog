@@ -1,13 +1,8 @@
-import os.path
-import re
-
+from . import dataset
 from decoder import int_type
 
-# Hackish workaround to be able to run this as a script too (rather than just as a part of a package)
-try:
-    import dataset
-except ImportError:
-    from . import dataset
+import os.path
+import re
 
 
 class _CsvDataIterCallable:

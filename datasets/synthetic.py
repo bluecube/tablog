@@ -1,3 +1,6 @@
+from . import dataset
+from decoder import int_type
+
 import math
 import itertools
 import numpy.random
@@ -5,14 +8,6 @@ import inspect
 import sys
 import hashlib
 import functools
-
-from decoder import int_type
-
-# Hackish workaround to be able to run this as a script too (rather than just as a part of a package)
-try:
-    import dataset
-except ImportError:
-    from . import dataset
 
 
 def all_datasets(length):
