@@ -3,7 +3,7 @@ from decoder import int_type
 
 import math
 import itertools
-import numpy.random
+import random as random_mod
 import inspect
 import sys
 import hashlib
@@ -88,21 +88,21 @@ def minor7chord(t, period, length):
 
 def _random(gen, t, length):
     r = t.range()
-    return ([int(gen.integers(r.start, r.stop))] for _ in range(length))
+    return ([int(gen.randrange(r.start, r.stop))] for _ in range(length))
 
 
 def _make_generator(*args):
     hasher = hashlib.sha1()
     hasher.update(repr(args).encode())
     seed = int.from_bytes(hasher.digest(), byteorder="big")
-    return numpy.random.Generator(numpy.random.PCG64(seed))
+    return random_mod.Random(seed)
 
 
 def random_step(t, period, length):
     gen = _make_generator(t, period)
     remaining = length
     for value in _random(gen, t, length):
-        segment_count = min(period // 2 + gen.geometric(2 / period), remaining)
+        segment_count = min(period // 2 + _geometric(gen, 2 / period), remaining)
         remaining = remaining - segment_count
 
         yield from itertools.repeat(value, segment_count)
@@ -119,7 +119,7 @@ def random_smooth(t, period, length):
     prev = next(it)[0]
     while remaining:
         current = next(it)[0]
-        segment_count_raw = period // 2 + gen.geometric(2 / period)
+        segment_count_raw = period // 2 + _geometric(gen, 2 / period)
         segment_count = min(segment_count_raw, remaining)
         remaining = remaining - segment_count
 
@@ -152,10 +152,14 @@ def unexpected_jump(t, period, length):
     (the unexpected jump will cause a large missprediction, that gets encoded to
     approximately as many bits as is the maximum value of the variable)."""
     gen = _make_generator(t, period)
-    next_jump = gen.geometric(1 / period)
+    next_jump = _geometric(gen, 1 / period)
     for i in range(length):
         if i == next_jump:
             yield [t.max()]
-            next_jump += gen.geometric(1 / period)
+            next_jump += _geometric(gen, 1 / period)
         else:
-            yield [int(gen.integers(10, 20))]
+            yield [int(gen.randint(10, 20))]
+
+def _geometric(gen, p):
+    # Might be wrong, but it's still ok.
+    return int(math.log(1.0 - gen.random()) / math.log(1.0 - p));
