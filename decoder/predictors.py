@@ -205,14 +205,15 @@ class Adapt(_Predictor):
         self._p1 = factory1(t)
         self._p2 = factory2(t)
 
-    def predict_and_feed(self, new_value):
-        prediction1 = self._p1.predict_and_feed(new_value)
-        prediction2 = self._p2.predict_and_feed(new_value)
-
+    def predict(self):
         if self._selector >= 0:
-            prediction = prediction1
+            return self._p1.predict()
         else:
-            prediction = prediction2
+            return self._p2.predict()
+
+    def feed(self, new_value):
+        prediction1 = self._p1.predict()
+        prediction2 = self._p2.predict()
 
         error1 = abs(prediction1 - new_value)
         error2 = abs(prediction2 - new_value)
@@ -222,4 +223,5 @@ class Adapt(_Predictor):
         elif error1 > error2:
             self._selector = max(self._selector - 1, -self._selector_max)
 
-        return prediction
+        self._p1.feed(new_value)
+        self._p2.feed(new_value)
