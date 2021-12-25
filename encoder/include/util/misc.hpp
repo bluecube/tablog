@@ -8,7 +8,7 @@
 
 namespace tablog::detail {
 
-template <typename T, bool isSigned>
+template <typename T, bool isIntegral>
 struct AbsDiffTypeHelper {
     using Type = T;
 };

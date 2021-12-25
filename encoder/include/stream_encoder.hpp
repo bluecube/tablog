@@ -47,7 +47,7 @@ public:
     void predictor_miss(
         bool predictionHigh,
         T absErrorToEncode,
-        AdaptiveExpGolombEncoder<std::make_unsigned_t<T>>& errorEncoder
+        AdaptiveExpGolombEncoder<T>& errorEncoder
     ) {
         assert(absErrorToEncode > 0);
 
