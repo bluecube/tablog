@@ -65,6 +65,28 @@ def test_bit_encode_decode(stream_encoder, data):
         assert br.read(bit_count) == expected
 
 
+@hypothesis.given(
+    data=hypothesis.strategies.text(alphabet="Tl# x12").map(lambda x: x.encode("utf-8"))
+)
+def test_framing_raw(stream_encoder, data):
+    """ Test that framing encoding and decoding restores the text correctly
+
+    x is used as a placeholder for a generic non-special character
+    1, 2 are used as a placeholder for start and stop flags.
+    """
+    encoded = stream_encoder.call("framing", data);
+
+    decoded = b""
+    for b in decoder_utils.FramingDecoder(encoded).raw_iterator():
+        if b is decoder_utils.FramingDecoder.block_start_marker:
+            decoded += b"1";
+        elif b is decoder_utils.FramingDecoder.block_end_marker:
+            decoded += b"2";
+        else:
+            decoded += bytes([b])
+
+    assert decoded == data
+
 @hypothesis.given(data=strategies.typed_values(unsigned_only=True))
 def test_elias_gamma(stream_encoder, data):
     """Test that elias gama encoder and decoder are inverse of each other."""

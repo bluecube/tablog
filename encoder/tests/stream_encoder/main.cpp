@@ -4,6 +4,7 @@
 #include "util/bit_writer.hpp"
 #include "stream_encoder_bits.hpp"
 #include "predictors.hpp"
+#include "framing.hpp"
 
 #include <iostream>
 #include <string>
@@ -76,9 +77,21 @@ void bit_pattern2(BW& bitWriter, std::string_view args) {
         bitWriter.write(i & 0x1f, 5);
 }
 
+template <typename BW>
+void framing(BW& bitWriter, std::string_view args) {
+    tablog::detail::Framing f([bitWriter](uint8_t c) mutable { bitWriter.write(c); });
+    for (auto c: args) {
+        if (c == '1')
+            f.start();
+        else if (c == '2')
+            f.end();
+        else
+            f(c);
+    }
+}
+
 template <typename T, typename BW>
 void encode_type(BW& bitWriter) {
-    std::cerr << type_name<T> << "\n";
     tablog::detail::encode_type<T>(bitWriter);
 }
 
@@ -121,6 +134,8 @@ int main() {
             bit_pattern2(bitWriter, rest);
         else if (func == "string")
             string(bitWriter, rest);
+        else if (func == "framing")
+            framing(bitWriter, rest);
         else {
             const auto type = next_token(rest).value();
 
