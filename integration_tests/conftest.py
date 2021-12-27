@@ -67,12 +67,23 @@ class _StreamEncoder:
         self._cond = threading.Condition()
 
     def __enter__(self):
-        self._subprocess_iterator = subprocess(self._command, self._input_iterator())
-        self._read_thread = threading.Thread(target=self._output_loop)
-        self._read_thread.start()
+        self._start()
         return self
 
     def __exit__(self, *exc_info):
+        if self._is_running():
+            self._stop()
+
+    def _start(self):
+        self._function_call = None
+        self._response = None
+        self._exception = None
+        self._quit_flag = False
+        self._subprocess_iterator = subprocess(self._command, self._input_iterator())
+        self._read_thread = threading.Thread(target=self._output_loop)
+        self._read_thread.start()
+
+    def _stop(self):
         with self._cond:
             self._quit_flag = True
             self._cond.notify_all()
@@ -82,8 +93,15 @@ class _StreamEncoder:
         if self._exception is not None:
             raise self._exception
 
+    def _is_running(self):
+        return self._read_thread.is_alive()
+
     def call(self, function, *args):
         with self._cond:
+            if not self._is_running():
+                # Restart in case of a crash
+                self._start()
+
             self._function_call = (
                 self._encode(function)
                 + b","
