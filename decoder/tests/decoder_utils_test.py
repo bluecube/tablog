@@ -4,31 +4,14 @@ import hypothesis
 from decoder import decoder_utils
 
 
-@pytest.fixture(
-    params=[
-        lambda x: x,
-        lambda x: [x],
-        lambda x: [x[i:i+1] for i in range(len(x))],
-    ],
-    ids=[
-        "raw-bytes",
-        "single-item-list",
-        "individual-bytes",
-    ],
-    scope="session"
-)
-def data_wrapper(request):
-    return request.param
-
-
 @hypothesis.given(length=hypothesis.strategies.integers(1, 1024 * 8))
-def test_bit_pattern(length, data_wrapper):
+def test_bit_pattern(length):
     data = b"\xaa" * (length // 8)
     remaining_bits = length - 8 * len(data)
     if remaining_bits:
         data += bytes([0xAA & ((1 << remaining_bits) - 1)])
 
-    br = decoder_utils.BitReader(data_wrapper(data))
+    br = decoder_utils.BitReader(data)
 
     expected = [(i & 1) for i in range(length)]
     bits = [br.read_bit() for _ in range(length)]
@@ -36,17 +19,10 @@ def test_bit_pattern(length, data_wrapper):
     assert bits == expected
 
 
-@hypothesis.given(
-    data=hypothesis.strategies.lists(
-        hypothesis.strategies.binary(max_size=1024),
-        max_size=100
-    )
-)
-def test_single_chunked_integer(data):
-    joined_data = b"".join(data)
+@hypothesis.given(data=hypothesis.strategies.binary(max_size=1024))
+def test_single_long_integer(data):
     br = decoder_utils.BitReader(data)
-
-    assert br.read(8 * len(joined_data)) == int.from_bytes(joined_data, "little", signed=False)
+    assert br.read(8 * len(data)) == int.from_bytes(data, "little", signed=False)
 
 
 @pytest.mark.parametrize(
@@ -79,9 +55,9 @@ def test_single_chunked_integer(data):
         ),
     ]
 )
-def test_examples_matching_cpp(data, expected_reads, data_wrapper):
+def test_examples_matching_cpp(data, expected_reads):
     """ Test manually defined values and expected results matching the C++ bit writer test. """
-    br = decoder_utils.BitReader(data_wrapper(data))
+    br = decoder_utils.BitReader(data)
 
     for (expected, bit_count) in expected_reads:
         assert br.read(bit_count) == expected
@@ -119,5 +95,5 @@ def test_bitreader_good_and_broken():
     ]
 )
 def test_decode_elias_gamma_manual(data, expected):
-    br = decoder_utils.BitReader([data])
+    br = decoder_utils.BitReader(data)
     assert decoder_utils.decode_elias_gamma(br) == expected

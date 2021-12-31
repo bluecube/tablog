@@ -6,15 +6,12 @@ from . import int_type
 
 
 class BitReader:
-    def __init__(self, data: Union[bytes, Iterable[bytes]]):
+    """ Class that allows reading unaligned bit data from byte stream. """
+    def __init__(self, data: Iterable[int]):
+        # `bytes` is a valid (and expected/intended) type for `data`
         self._current_chunk = 0
         self._current_chunk_remaining = 0
-
-        if isinstance(data, bytes):
-            self._add_chunk(data)
-            self._it = iter([])
-        else:
-            self._it = iter(data)
+        self._it = iter(data)
 
     def read(self, nbits):
         """ Read n bits from the input, return as an int,
@@ -24,7 +21,7 @@ class BitReader:
         but not enough to fulfil the request.  """
         try:
             while nbits > self._current_chunk_remaining:
-                self._next_chunk()
+                self._next_byte()
         except StopIteration as e:
             if self._current_chunk_remaining > 0:
                 raise ValueError(
@@ -44,15 +41,12 @@ class BitReader:
     def read_bit(self):
         return self.read(1)
 
-    def _add_chunk(self, b):
-        new_chunk = int.from_bytes(b, byteorder="little", signed=False)
-        new_chunk_remaining = 8 * len(b)
-
-        self._current_chunk = self._current_chunk | new_chunk << self._current_chunk_remaining
-        self._current_chunk_remaining += new_chunk_remaining
-
-    def _next_chunk(self):
-        self._add_chunk(next(self._it))
+    def _next_byte(self):
+        b = next(self._it)
+        bits = 8
+        assert 0 <= b < (1<<bits)
+        self._current_chunk = self._current_chunk | b << self._current_chunk_remaining
+        self._current_chunk_remaining += bits
 
 
 class FramingDecoder:

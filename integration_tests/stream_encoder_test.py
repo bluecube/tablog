@@ -7,7 +7,7 @@ from decoder.tests import strategies
 
 
 def _br(binary_data):
-    return decoder_utils.BitReader([binary_data])
+    return decoder_utils.BitReader(binary_data)
 
 
 @hypothesis.given(length=hypothesis.strategies.integers(1, 1024 * 8))
