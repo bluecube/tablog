@@ -2,12 +2,13 @@ import pytest
 import hypothesis
 
 from decoder import decoder_utils
+from decoder import bit_reader
 from decoder import predictors
 from decoder.tests import strategies
 
 
 def _br(binary_data):
-    return decoder_utils.BitReader(binary_data)
+    return bit_reader.BitReader(binary_data)
 
 
 @hypothesis.given(length=hypothesis.strategies.integers(1, 1024 * 8))
@@ -124,7 +125,6 @@ def test_adaptive_exp_golomb(stream_encoder, data):
 def test_encode_type(stream_encoder, int_type):
     encoded = stream_encoder.call("encode_type", str(int_type))
     decoded = decoder_utils.decode_type(_br(encoded))
-    print(decoded)
     assert decoded == int_type
 
 
