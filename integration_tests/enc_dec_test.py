@@ -18,7 +18,6 @@ import decoder as decoder_module
     ],
 )
 @pytest.mark.dataset
-@pytest.mark.xfail(reason="Encoding and decoding is still WIP")
 def test_dataset_encode_decode(csv_encoder, dataset):
     """ Check that encoding and decoding a dataset generates identical values """
 

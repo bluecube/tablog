@@ -1,20 +1,21 @@
 from . import decoder_utils
+from . import bit_reader
 from . import predictors
-from . import int_type
 
 from collections.abc import Iterable
-from typing import Union
+import itertools
 
 
 class TablogDecoder:
     supported_version = 0  # Supported version of Tablog format
 
-    def __init__(self, chunks: Union[bytes, Iterable[bytes]]):
+    def __init__(self, chunks: Iterable[bytes]):
         """ Construct the decoder object, pass in the encoded data
         (either as single block or iterable of chunks)
         chunks: Iterable of bytes (or bytes) containing the compressed data.
         """
-        self._bit_reader = decoder_utils.BitReader(chunks)
+
+        self._bit_reader = bit_reader.BitReader(itertools.chain.from_iterable(chunks))
         self.field_names = None
         self.field_types = None
         self._predictors = None
