@@ -25,7 +25,12 @@ def test_bit_pattern(stream_encoder, length):
     expected = b"\xaa" * (length // 8)
     remaining_bits = length - 8 * len(expected)
     if remaining_bits:
-        expected += bytes([0xAA & ((1 << remaining_bits) - 1)])
+        byte = 0xAA & ((1 << remaining_bits) - 1)
+        byte |= 1 << remaining_bits  # End marker
+        expected += bytes([byte])
+    else:
+        expected += b"\x01"  # End marker
+
     assert stream_encoder.call("bit_pattern", length) == expected
 
 
@@ -69,23 +74,24 @@ def test_bit_encode_decode(stream_encoder, data):
     data=hypothesis.strategies.text(alphabet="Tl# x12").map(lambda x: x.encode("utf-8"))
 )
 def test_framing_raw(stream_encoder, data):
-    """ Test that framing encoding and decoding restores the text correctly
+    """ Test that framing encoding and decoding restores input and control commands correctly
 
     x is used as a placeholder for a generic non-special character
     1, 2 are used as a placeholder for start and stop flags.
     """
-    encoded = stream_encoder.call("framing", data);
+    encoded = stream_encoder.call("framing", data)
 
     decoded = b""
     for b in decoder_utils.FramingDecoder(encoded).raw_iterator():
         if b is decoder_utils.FramingDecoder.block_start_marker:
-            decoded += b"1";
+            decoded += b"1"
         elif b is decoder_utils.FramingDecoder.block_end_marker:
-            decoded += b"2";
+            decoded += b"2"
         else:
             decoded += bytes([b])
 
     assert decoded == data
+
 
 @hypothesis.given(data=strategies.typed_values(unsigned_only=True))
 def test_elias_gamma(stream_encoder, data):
@@ -142,10 +148,11 @@ def test_predictors_equality(stream_encoder, predictor, data):
         str(int_type),
         *values
     )
-    print(encoded)
+    br = _br(encoded)
+
     decoded = [
-        int.from_bytes(encoded[i:i+int_type.bytesize()], "little", signed=int_type.signed)
-        for i in range(0, len(encoded), int_type.bytesize())
+        int_type.convert_unsigned(br.read(int_type.bitsize))
+        for i in range(0, len(values))
     ]
 
     predictor = predictor[1](int_type)

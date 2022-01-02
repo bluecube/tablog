@@ -23,6 +23,7 @@ public:
 
     void header(uint_fast8_t version, uint_fast8_t fieldCount) {
         assert(fieldCount > 0);
+        //output.output.start();
         elias_gamma(version, output);
         elias_gamma(fieldCount - 1u, output);
     }
@@ -58,8 +59,9 @@ public:
     }
 
     void end_of_stream() {
-        // TODO: Implement
-        output.flush();
+        output.end(); // Finalize the bit writer itself, flush it
+        //output.output.end(); // Mark the end of the block
+        // TODO: Checksum?
     }
 
 private:

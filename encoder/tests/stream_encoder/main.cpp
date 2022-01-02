@@ -156,7 +156,7 @@ int main() {
                     throw std::runtime_error("Unknown func");
             }
 
-            bitWriter.flush();
+            bitWriter.end();
         }
 
         std::cout << output.size();

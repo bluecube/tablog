@@ -49,6 +49,12 @@ TEST_CASE("BitWriter") {
         }
     }
 
+    SECTION("End 4 bits") {
+        bw.write(0x9u, 4);
+        bw.end();
+        REQUIRE(data == "\x19");
+    }
+
     SECTION("Small write followed by large write followed by flush") {
         bw.write(0u, 1);
         bw.write(2474832583ull, 32);

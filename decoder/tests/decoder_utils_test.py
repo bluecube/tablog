@@ -6,10 +6,16 @@ from decoder import decoder_utils
 
 @hypothesis.given(length=hypothesis.strategies.integers(1, 1024 * 8))
 def test_bit_pattern(length):
+    """ Check that artificially generated alternating bit pattern gets correctly
+    parsed from the input bytes and that the end flag is correctly recognized """
     data = b"\xaa" * (length // 8)
     remaining_bits = length - 8 * len(data)
     if remaining_bits:
-        data += bytes([0xAA & ((1 << remaining_bits) - 1)])
+        byte = 0xAA & ((1 << remaining_bits) - 1)
+        byte |= 1 << remaining_bits  # End marker
+        data += bytes([byte])
+    else:
+        data += b"\x01"  # End marker
 
     br = decoder_utils.BitReader(data)
 
@@ -18,10 +24,12 @@ def test_bit_pattern(length):
 
     assert bits == expected
 
+    assert br.read_bit() is None
+
 
 @hypothesis.given(data=hypothesis.strategies.binary(max_size=1024))
 def test_single_long_integer(data):
-    br = decoder_utils.BitReader(data)
+    br = decoder_utils.BitReader(data + b"\x01")  # Data + end marker
     assert br.read(8 * len(data)) == int.from_bytes(data, "little", signed=False)
 
 
@@ -29,59 +37,50 @@ def test_single_long_integer(data):
     "data,expected_reads",
     [
         pytest.param(
-            b"\x09",
+            b"\x19",
             [(0x9, 4)],
             id="4 bits"
         ),
         pytest.param(
-            b"\x76\x98",
+            b"\x76\x98\x01",
             [(0x6, 4), (0x7, 4), (0x8, 4), (0x9, 4)],
             id="4x4 bits"
         ),
         pytest.param(
-            b"\xc7\xf2\x82\x13",
+            b"\xc7\xf2\x82\x13\x01",
             [(62151, 16), (4994, 16)],
             id="2x16 bits"
         ),
         pytest.param(
-            b"\xc7\xf2\x82\x13",
+            b"\xc7\xf2\x82\x13\x01",
             [(327348935, 32)],
             id="1x32 bits"
         ),
         pytest.param(
-            b"\x8e\xe5\x05\x27\x01",
+            b"\x8e\xe5\x05\x27\x03",
             [(0, 1), (2474832583, 32)],
             id="1 + 32 bits"
         ),
     ]
 )
 def test_examples_matching_cpp(data, expected_reads):
-    """ Test manually defined values and expected results matching the C++ bit writer test. """
+    """ Test manually defined values and expected results matching the C++ bit writer test.
+    Hovewer the test data include the end flags, which in the C++ test they dont. """
+
     br = decoder_utils.BitReader(data)
 
     for (expected, bit_count) in expected_reads:
         assert br.read(bit_count) == expected
 
 
-def test_empty_bitreader_list():
-    br = decoder_utils.BitReader([])
-    assert br.read(3) is None
+@hypothesis.given(nbits=hypothesis.strategies.integers(min_value=1))
+def test_empty_end(nbits):
+    br = decoder_utils.BitReader(b"\x01")
+    assert br.read(nbits) is None
 
 
-def test_empty_bitreader_bytes():
-    br = decoder_utils.BitReader(b"")
-    assert br.read(3) is None
-
-
-def test_bitreader_broken():
-    br = decoder_utils.BitReader(b"a")
-    with pytest.raises(ValueError):
-        br.read(9)
-
-
-def test_bitreader_good_and_broken():
-    br = decoder_utils.BitReader(b"a")
-    assert br.read(7) == 0x61
+def test_too_large_read():
+    br = decoder_utils.BitReader(b"\x03")
     with pytest.raises(ValueError):
         br.read(2)
 
@@ -89,11 +88,13 @@ def test_bitreader_good_and_broken():
 @pytest.mark.parametrize(
     "data,expected",
     [
-        (b"\x01", 0),
-        (b"\x02", 1),
-        (b"\x06", 2),
+        (b"\x03", 0),
+        (b"\x0a", 1),
+        (b"\x0e", 2),
     ]
 )
 def test_decode_elias_gamma_manual(data, expected):
+    """ Decoding Elias gamma encoded numbers from manual examples.
+    The examples already contain bit reader end mark """
     br = decoder_utils.BitReader(data)
     assert decoder_utils.decode_elias_gamma(br) == expected

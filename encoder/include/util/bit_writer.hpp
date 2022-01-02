@@ -8,6 +8,8 @@
 
 namespace tablog::util {
 
+/// Helper class that allows writing unaligned bit data and passes them to the
+/// output byte by byte.
 template <typename OutputF>
 class BitWriter {
 private:
@@ -56,6 +58,16 @@ public:
         write(b, 1);
     }
 
+    /// End the bit stream by writing a single 1 bit and then padding with
+    /// zero bits to whole byte.
+    void end() {
+        this->write_bit(1);
+        this->flush();
+    }
+
+    OutputF output;
+
+private:
     /// Pad the last unwritten byte with zeros and output it.
     void flush() {
         if (bufferUsed == 0)
@@ -66,14 +78,11 @@ public:
         bufferUsed = 0;
     }
 
-private:
     static constexpr uint_fast8_t outputBitSize = 8;
     static constexpr uint_fast8_t outputMask = 0xff;
 
     BufferT buffer = 0;
     uint_fast8_t bufferUsed = 0;
-
-    OutputF output;
 };
 
 }
