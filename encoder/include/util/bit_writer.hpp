@@ -65,10 +65,8 @@ public:
         this->flush();
     }
 
-    OutputF output;
-
-private:
     /// Pad the last unwritten byte with zeros and output it.
+    /// This is only intended for testing
     void flush() {
         if (bufferUsed == 0)
             return;
@@ -78,6 +76,9 @@ private:
         bufferUsed = 0;
     }
 
+    OutputF output;
+
+private:
     static constexpr uint_fast8_t outputBitSize = 8;
     static constexpr uint_fast8_t outputMask = 0xff;
 
