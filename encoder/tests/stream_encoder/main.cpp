@@ -54,11 +54,10 @@ void string(BW& bitWriter, std::string_view args) {
 }
 
 /// Test pattern consisting of bytes with increasing value
-template <typename BW>
-void byte_pattern(BW& bitWriter, std::string_view args) {
+void byte_pattern(std::string& output, std::string_view args) {
     const auto count = parse_num<uint32_t>(args);
     for (uint32_t i = 0; i < count; ++i)
-        bitWriter.write(i & 0xff, 8);
+        output.push_back(i & 0xff);
 }
 
 /// Test pattern consisting of repeated zeroes and ones
@@ -77,10 +76,10 @@ void bit_pattern2(BW& bitWriter, std::string_view args) {
         bitWriter.write(i & 0x1f, 5);
 }
 
-template <typename BW>
-void framing(BW& bitWriter, std::string_view args) {
-    tablog::detail::Framing f([bitWriter](uint8_t c) mutable { bitWriter.write(c); });
+void framing(std::string& output, std::string_view args) {
+    tablog::detail::Framing f([&output](uint8_t c) mutable { output.push_back(c); });
     for (auto c: args) {
+        std::cerr << c << "\n";
         if (c == '1')
             f.start();
         else if (c == '2')
@@ -122,40 +121,43 @@ int main() {
         auto rest = std::string_view(lineStr);
 
         std::string output;
-        tablog::util::BitWriter bitWriter{[&output](uint8_t c) { output.push_back(c); }};
 
         const auto func = next_token(rest).value();
 
         if (func == "byte_pattern")
-            byte_pattern(bitWriter, rest);
-        else if (func == "bit_pattern")
-            bit_pattern(bitWriter, rest);
-        else if (func == "bit_pattern2")
-            bit_pattern2(bitWriter, rest);
-        else if (func == "string")
-            string(bitWriter, rest);
+            byte_pattern(output, rest);
         else if (func == "framing")
-            framing(bitWriter, rest);
+            framing(output, rest);
         else {
-            const auto type = next_token(rest).value();
+            tablog::util::BitWriter bitWriter{[&output](uint8_t c) { output.push_back(c); }};
 
-            if (func == "write_bits")
-                TYPED_CALL_UNSIGNED(write_bits, type, bitWriter, rest);
-            else if (func == "elias_gamma")
-                TYPED_CALL_UNSIGNED(elias_gamma, type, bitWriter, rest);
-            else if (func == "adaptive_exp_golomb")
-                TYPED_CALL_UNSIGNED(adaptive_exp_golomb, type, bitWriter, rest);
-            else if (func == "encode_type")
-                TYPED_CALL(encode_type, type, bitWriter);
-            else if (func == "linear3_predictor")
-                TYPED_CALL(linear3_predictor, type, bitWriter, rest);
-            else if (func == "linear12adapt_predictor")
-                TYPED_CALL(linear12adapt_predictor, type, bitWriter, rest);
-            else
-                throw std::runtime_error("Unknown func");
+            if (func == "bit_pattern")
+                bit_pattern(bitWriter, rest);
+            else if (func == "bit_pattern2")
+                bit_pattern2(bitWriter, rest);
+            else if (func == "string")
+                string(bitWriter, rest);
+            else {
+                const auto type = next_token(rest).value();
+
+                if (func == "write_bits")
+                    TYPED_CALL_UNSIGNED(write_bits, type, bitWriter, rest);
+                else if (func == "elias_gamma")
+                    TYPED_CALL_UNSIGNED(elias_gamma, type, bitWriter, rest);
+                else if (func == "adaptive_exp_golomb")
+                    TYPED_CALL_UNSIGNED(adaptive_exp_golomb, type, bitWriter, rest);
+                else if (func == "encode_type")
+                    TYPED_CALL(encode_type, type, bitWriter);
+                else if (func == "linear3_predictor")
+                    TYPED_CALL(linear3_predictor, type, bitWriter, rest);
+                else if (func == "linear12adapt_predictor")
+                    TYPED_CALL(linear12adapt_predictor, type, bitWriter, rest);
+                else
+                    throw std::runtime_error("Unknown func");
+            }
+
+            bitWriter.flush();
         }
-
-        bitWriter.flush();
 
         std::cout << output.size();
         std::cout << '\n';
