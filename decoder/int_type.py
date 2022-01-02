@@ -1,5 +1,6 @@
 class IntType:
     allowed_bitsizes = [8, 16, 32, 64]
+
     def __init__(self, signed, bitsize):
         if bitsize not in self.allowed_bitsizes:
             raise ValueError("Bit size must be one of 8, 16, 32, 64")
@@ -62,3 +63,12 @@ class IntType:
             return cls(False, bitsize)
         else:
             raise ValueError("First character of type string must be 'u' or 's'")
+
+    def convert_unsigned(self, v):
+        """ Convert value of corresponsing unsigned type to the current type. """
+        unsigned_limit = 1 << self.bitsize
+        assert 0 <= v < unsigned_limit
+        if self.signed and v > self.max():
+            return v - unsigned_limit
+        else:
+            return v
