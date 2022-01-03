@@ -1,52 +1,52 @@
 from collections.abc import Iterable
-from typing import Union
+from typing import Union, Literal
 import itertools
 
+block_start_marker = object()
+block_end_marker = object()
 
-class FramingDecoder:
-    block_start_marker = object()
-    block_end_marker = object()
 
-    _escape_byte = b"T"[0]
-    _start_byte = b"l"[0]
-    _end_byte = b"#"[0]
-    _double_escape_byte = b" "[0]
+def decode_framing_raw(data: Union[bytes, Iterable[bytes]]) -> Union[Literal[block_start_marker, block_end_marker], int]:
+    """ Convert raw bytes (or iterator of raw byte chunks) to iterable of encoded
+    byte values (0-255) and markers (either block_start_marker, or block_end_marker). """
+    escape_byte = b"T"[0]
+    start_byte = b"l"[0]
+    end_byte = b"#"[0]
+    double_escape_byte = b" "[0]
 
-    def __init__(self, data: Union[bytes, Iterable[bytes]]):
-        self._had_escape = False
+    if isinstance(data, bytes):
+        it = iter(data)
+    else:
+        it = itertools.chain.from_iterable(data)
 
-        if isinstance(data, bytes):
-            self._it = iter(data)
-        else:
-            self._it = itertools.chain.from_iterable(data)
+    had_escape = False
 
-    def raw_iterator(self):
-        """Iterates over individual encoded bytes and marker objects """
-        for b in self._it:
-            if self._had_escape:
-                if b == self._escape_byte:
-                    # We didn't use the previous escape byte, output it
-                    # But keep the current one stored
-                    yield self._escape_byte
-                else:
-                    if b == self._start_byte:
-                        yield self.block_start_marker
-                    elif b == self._end_byte:
-                        yield self.block_end_marker
-                    elif b == self._double_escape_byte:
-                        yield self._escape_byte
-                    else:
-                        # We didn't use the previous escape byte, output it
-                        yield self._escape_byte
-                        # The current byte is not interesting output it as is
-                        yield b
-
-                    self._had_escape = False
-            elif b == self._escape_byte:
-                self._had_escape = True
+    for b in it:
+        if had_escape:
+            if b == escape_byte:
+                # We didn't use the previous escape byte, output it
+                # But keep the current one stored
+                yield escape_byte
             else:
-                yield b
+                if b == start_byte:
+                    yield block_start_marker
+                elif b == end_byte:
+                    yield block_end_marker
+                elif b == double_escape_byte:
+                    yield escape_byte
+                else:
+                    # We didn't use the previous escape byte, output it
+                    yield escape_byte
+                    # The current byte is not interesting output it as is
+                    yield b
 
-        if self._had_escape:
-            # Output the last escape byte if there was one
-            yield self._escape_byte
+                had_escape = False
+        elif b == escape_byte:
+            had_escape = True
+        else:
+            yield b
+
+    if had_escape:
+        # Output the last escape byte if there was one
+        yield escape_byte
+

@@ -84,10 +84,10 @@ def test_framing_raw(stream_encoder, data):
     encoded = stream_encoder.call("framing", data)
 
     decoded = b""
-    for b in framing.FramingDecoder(encoded).raw_iterator():
-        if b is framing.FramingDecoder.block_start_marker:
+    for b in framing.decode_framing_raw(encoded):
+        if b is framing.block_start_marker:
             decoded += b"1"
-        elif b is framing.FramingDecoder.block_end_marker:
+        elif b is framing.block_end_marker:
             decoded += b"2"
         else:
             decoded += bytes([b])
