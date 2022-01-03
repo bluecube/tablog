@@ -3,6 +3,7 @@ import hypothesis
 
 from decoder import decoder_utils
 from decoder import bit_reader
+from decoder import framing
 from decoder import predictors
 from decoder.tests import strategies
 
@@ -83,10 +84,10 @@ def test_framing_raw(stream_encoder, data):
     encoded = stream_encoder.call("framing", data)
 
     decoded = b""
-    for b in decoder_utils.FramingDecoder(encoded).raw_iterator():
-        if b is decoder_utils.FramingDecoder.block_start_marker:
+    for b in framing.FramingDecoder(encoded).raw_iterator():
+        if b is framing.FramingDecoder.block_start_marker:
             decoded += b"1"
-        elif b is decoder_utils.FramingDecoder.block_end_marker:
+        elif b is framing.FramingDecoder.block_end_marker:
             decoded += b"2"
         else:
             decoded += bytes([b])
