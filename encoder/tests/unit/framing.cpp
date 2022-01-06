@@ -52,4 +52,22 @@ TEST_CASE("Framing") {
         f(secondChar);
         REQUIRE(data == std::string("TT ") + secondChar);
     }
+
+    SECTION("Compactness") {
+        // Iterate over all pairs of characters, check that the string expands
+        // by a defined amount
+        for (uint32_t a = 0; a <= 255; ++a) {
+            for (uint32_t b = 0; b <= 255; ++b) {
+                f(a);
+                f(b);
+                f(',');
+                    // Separate by a boring character, so that we never encounter
+                    // a and b in reverse order
+            }
+        }
+
+        REQUIRE(data.size() == 256 * 256 * 3 + 3);
+        // We wrote 256 * 256 * 3 bytes,
+        // three pairs of bytes are escaped: "Tl", "T#" and "T "
+    }
 }
