@@ -1,27 +1,51 @@
 from . import decoder_utils
 from . import bit_reader
+from . import framing
 from . import predictors
 
-from collections.abc import Iterable
-import itertools
+import collections.abc
 
 
 class TablogDecoder:
     supported_version = 0  # Supported version of Tablog format
 
-    def __init__(self, chunks: Iterable[bytes]):
+    def __init__(self, chunks: collections.abc.Iterable[bytes]):
         """ Construct the decoder object, pass in the encoded data
         (either as single block or iterable of chunks)
         chunks: Iterable of bytes (or bytes) containing the compressed data.
         """
 
-        self._bit_reader = bit_reader.BitReader(itertools.chain.from_iterable(chunks))
+        self._framing_it = framing.decode_framing(chunks)
+        self._bit_reader = None
         self.field_names = None
         self.field_types = None
         self._predictors = None
         self._error_decoders = None
 
+        self._next_block()
+
+    def _next_block(self):
+        try:
+            item = next(self._framing_it)
+        except StopIteration:
+            return False
+
+        if isinstance(item, collections.abc.Iterator):
+            self._bit_reader = bit_reader.BitReader(item)
+        else:
+            raise Exception(str(item))
+
+        old_field_names = self.field_names
+        old_field_types = self.field_types
+
         self._read_header()
+
+        if old_field_names is not None and old_field_names != self.field_names:
+            raise Exception("Field names have changed")
+        if old_field_types is not None and old_field_types != self.field_types:
+            raise Exception("Field types have changed")
+
+        return True
 
     def _read_header(self):
         version = decoder_utils.decode_elias_gamma(self._bit_reader)
@@ -68,10 +92,16 @@ class TablogDecoder:
         predictor.feed(value)
         return value
 
+    def _read_row(self):
+        return [
+            self._read_value(predictor, error_decoder)
+            for predictor, error_decoder
+            in zip(self._predictors, self._error_decoders)
+        ]
+
     def __iter__(self):
-        while not self._bit_reader.end_of_block():
-            yield [
-                self._read_value(predictor, error_decoder)
-                for predictor, error_decoder
-                in zip(self._predictors, self._error_decoders)
-            ]
+        while True:
+            while not self._bit_reader.end_of_block():
+                yield self._read_row()
+            if not self._next_block():
+                return

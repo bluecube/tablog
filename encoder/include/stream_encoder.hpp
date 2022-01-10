@@ -2,6 +2,7 @@
 
 #include "util/bit_writer.hpp"
 #include "stream_encoder_bits.hpp"
+#include "framing.hpp"
 
 #include <cstdint>
 #include <limits>
@@ -19,11 +20,11 @@ public:
     using OutputF = OutputF_;
 
     StreamEncoder(OutputF output)
-        : output(std::move(output)) {}
+        : output(Framing<OutputF>(std::move(output))) {}
 
     void header(uint_fast8_t version, uint_fast8_t fieldCount) {
         assert(fieldCount > 0);
-        //output.output.start();
+        output.output.start();
         elias_gamma(version, output);
         elias_gamma(fieldCount - 1u, output);
     }
@@ -58,15 +59,15 @@ public:
         errorEncoder.encode(absErrorToEncode - 1, output);
     }
 
-    void end_of_stream() {
+    void end_of_block() {
         output.end(); // Finalize the bit writer itself, flush it
-        //output.output.end(); // Mark the end of the block
+        output.output.end(); // Mark the end of the block
         // TODO: Checksum?
     }
 
 private:
 
-    util::BitWriter<OutputF> output;
+    util::BitWriter<Framing<OutputF>> output;
 };
 
 }

@@ -45,7 +45,7 @@ public:
         if (closed)
             return;
 
-        encoder.end_of_stream();
+        encoder.end_of_block();
         closed = true;
     }
 
