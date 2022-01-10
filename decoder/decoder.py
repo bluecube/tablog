@@ -53,16 +53,12 @@ class TablogDecoder:
 
     def _read_value_error(self, error_decoder):
         hit = self._bit_reader.read_bit()
-        if hit is None:
-            # We ran out of encoded data, stop the row iterator
-            # Raising an exception here is kind of hacky, but simple solution
-            raise StopIteration
-        elif hit:
+
+        if hit:
             return 0
         else:
             prediction_high = self._bit_reader.read_bit()
             error = error_decoder.decode(self._bit_reader) + 1
-
 
             return error if prediction_high else -error
 
@@ -73,12 +69,9 @@ class TablogDecoder:
         return value
 
     def __iter__(self):
-        try:
-            while True:
-                yield [
-                    self._read_value(predictor, error_decoder)
-                    for predictor, error_decoder
-                    in zip(self._predictors, self._error_decoders)
-                ]
-        except StopIteration:
-            pass
+        while not self._bit_reader.end_of_block():
+            yield [
+                self._read_value(predictor, error_decoder)
+                for predictor, error_decoder
+                in zip(self._predictors, self._error_decoders)
+            ]

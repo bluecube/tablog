@@ -20,11 +20,17 @@ def test_bit_pattern(length):
     br = bit_reader.BitReader(data)
 
     expected = [(i & 1) for i in range(length)]
-    bits = [br.read_bit() for _ in range(length)]
+
+    bits = [br.read_bit() for _ in range(length - 1)]
+    assert not br.end_of_block()
+    bits.append(br.read_bit())
+    assert br.end_of_block()
 
     assert bits == expected
 
-    assert br.read_bit() is None
+    with pytest.raises(bit_reader.IncompleteRead) as exc_info:
+        br.read_bit()
+    assert exc_info.value.remaining == 0
 
 
 @hypothesis.given(data=hypothesis.strategies.binary(max_size=1024))
@@ -76,10 +82,16 @@ def test_examples_matching_cpp(data, expected_reads):
 @hypothesis.given(nbits=hypothesis.strategies.integers(min_value=1))
 def test_empty_end(nbits):
     br = bit_reader.BitReader(b"\x01")
-    assert br.read(nbits) is None
+    assert br.end_of_block()
+
+    with pytest.raises(bit_reader.IncompleteRead) as exc_info:
+        br.read(nbits)
+    assert exc_info.value.remaining == 0
 
 
 def test_too_large_read():
     br = bit_reader.BitReader(b"\x03")
-    with pytest.raises(ValueError):
+    with pytest.raises(bit_reader.IncompleteRead) as exc_info:
         br.read(2)
+    assert exc_info.value.remaining == 1
+    assert exc_info.value.nbits == 2

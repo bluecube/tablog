@@ -46,6 +46,10 @@ def test_bit_pattern2(stream_encoder, length):
 
     assert decoded == expected
 
+    with pytest.raises(bit_reader.IncompleteRead) as exc_info:
+        br.read_bit()
+    assert exc_info.value.remaining == 0
+
 
 @hypothesis.given(data=hypothesis.strategies.data())
 def test_bit_encode_decode(stream_encoder, data):
