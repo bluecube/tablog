@@ -10,7 +10,7 @@ class TablogDecoder:
     supported_version = 0  # Supported version of Tablog format
 
     def __init__(self, chunks: collections.abc.Iterable[bytes]):
-        """ Construct the decoder object, pass in the encoded data
+        """Construct the decoder object, pass in the encoded data
         (either as single block or iterable of chunks)
         chunks: Iterable of bytes (or bytes) containing the compressed data.
         """
@@ -65,8 +65,7 @@ class TablogDecoder:
             value_type = decoder_utils.decode_type(self._bit_reader)
 
             predictor = predictors.Adapt(
-                value_type, 8,
-                predictors.Last.factory(), predictors.LinearO2.factory()
+                value_type, 8, predictors.Last.factory(), predictors.LinearO2.factory()
             )
             error_decoder = decoder_utils.AdaptiveExpGolombDecoder(value_type.bitsize)
 
@@ -95,8 +94,7 @@ class TablogDecoder:
     def _read_row(self):
         return [
             self._read_value(predictor, error_decoder)
-            for predictor, error_decoder
-            in zip(self._predictors, self._error_decoders)
+            for predictor, error_decoder in zip(self._predictors, self._error_decoders)
         ]
 
     def __iter__(self):

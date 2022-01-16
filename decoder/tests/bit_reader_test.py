@@ -6,8 +6,8 @@ from decoder import bit_reader
 
 @hypothesis.given(length=hypothesis.strategies.integers(1, 1024 * 8))
 def test_bit_pattern(length):
-    """ Check that artificially generated alternating bit pattern gets correctly
-    parsed from the input bytes and that the end flag is correctly recognized """
+    """Check that artificially generated alternating bit pattern gets correctly
+    parsed from the input bytes and that the end flag is correctly recognized"""
     data = b"\xaa" * (length // 8)
     remaining_bits = length - 8 * len(data)
     if remaining_bits:
@@ -42,36 +42,22 @@ def test_single_long_integer(data):
 @pytest.mark.parametrize(
     "data,expected_reads",
     [
+        pytest.param(b"\x19", [(0x9, 4)], id="4 bits"),
         pytest.param(
-            b"\x19",
-            [(0x9, 4)],
-            id="4 bits"
+            b"\x76\x98\x01", [(0x6, 4), (0x7, 4), (0x8, 4), (0x9, 4)], id="4x4 bits"
         ),
         pytest.param(
-            b"\x76\x98\x01",
-            [(0x6, 4), (0x7, 4), (0x8, 4), (0x9, 4)],
-            id="4x4 bits"
+            b"\xc7\xf2\x82\x13\x01", [(62151, 16), (4994, 16)], id="2x16 bits"
         ),
+        pytest.param(b"\xc7\xf2\x82\x13\x01", [(327348935, 32)], id="1x32 bits"),
         pytest.param(
-            b"\xc7\xf2\x82\x13\x01",
-            [(62151, 16), (4994, 16)],
-            id="2x16 bits"
+            b"\x8e\xe5\x05\x27\x03", [(0, 1), (2474832583, 32)], id="1 + 32 bits"
         ),
-        pytest.param(
-            b"\xc7\xf2\x82\x13\x01",
-            [(327348935, 32)],
-            id="1x32 bits"
-        ),
-        pytest.param(
-            b"\x8e\xe5\x05\x27\x03",
-            [(0, 1), (2474832583, 32)],
-            id="1 + 32 bits"
-        ),
-    ]
+    ],
 )
 def test_examples_matching_cpp(data, expected_reads):
-    """ Test manually defined values and expected results matching the C++ bit writer test.
-    Hovewer the test data include the end flags, which in the C++ test they dont. """
+    """Test manually defined values and expected results matching the C++ bit writer test.
+    Hovewer the test data include the end flags, which in the C++ test they dont."""
 
     br = bit_reader.BitReader(data)
 

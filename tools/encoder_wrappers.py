@@ -7,7 +7,9 @@ import threading
 
 from . import subprocess_iterator
 
-encoder_tests_dir = os.path.join(os.path.dirname(__file__), "..", "encoder", "build", "tests")
+encoder_tests_dir = os.path.join(
+    os.path.dirname(__file__), "..", "encoder", "build", "tests"
+)
 
 
 class UnsupportedTypeSignature(Exception):
@@ -34,14 +36,15 @@ def csv_encoder(dataset):
     try:
         yield from subprocess_iterator.subprocess_iterator(
             [os.path.join(encoder_tests_dir, "csv", "csv_tests")],
-            _serialize_dataset(dataset)
+            _serialize_dataset(dataset),
         )
     except subprocess.CalledProcessError as e:
         if e.returncode == 128:
             raise UnsupportedTypeSignature(
-                "Tablog CSV driver doesn't support type signature (" +
-                ", ".join(str(t) for t in dataset.field_types) +
-                ")") from e
+                "Tablog CSV driver doesn't support type signature ("
+                + ", ".join(str(t) for t in dataset.field_types)
+                + ")"
+            ) from e
         else:
             raise
 
@@ -52,14 +55,15 @@ csv_encoder.UnsupportedTypeSignature = UnsupportedTypeSignature
 
 
 class StreamEncoder:
-    """ Provides RPC-like interface to the stream_encoder tests, through the call() method """
+    """Provides RPC-like interface to the stream_encoder tests, through the call() method"""
 
     def __init__(self, path=None):
         if path is None:
-            self._command = [os.path.join(
-                encoder_tests_dir,
-                "stream_encoder", "stream_encoder_tests"
-            )]
+            self._command = [
+                os.path.join(
+                    encoder_tests_dir, "stream_encoder", "stream_encoder_tests"
+                )
+            ]
         else:
             self._command = [path]
 
@@ -84,7 +88,9 @@ class StreamEncoder:
         self._response = None
         self._exception = None
         self._quit_flag = False
-        self._subprocess_iterator = subprocess_iterator.subprocess_iterator(self._command, self._input_iterator())
+        self._subprocess_iterator = subprocess_iterator.subprocess_iterator(
+            self._command, self._input_iterator()
+        )
         self._read_thread = threading.Thread(target=self._output_loop)
         self._read_thread.start()
 
@@ -155,7 +161,7 @@ class StreamEncoder:
 
                 payload_bytes = int(data[:newline_pos].decode("utf-8"))
 
-                data = data[newline_pos + 1:]
+                data = data[newline_pos + 1 :]
 
                 while len(data) < payload_bytes:
                     block = next(self._subprocess_iterator)

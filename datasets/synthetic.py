@@ -12,8 +12,8 @@ import functools
 
 def all_datasets(length):
     types = [int_type.IntType.from_string(s) for s in ["u8", "s16", "u64", "s64"]]
-        # u8 is easy to analyze by looking at it, u64 and s64 have max range,
-        # s16 is just something in between.
+    # u8 is easy to analyze by looking at it, u64 and s64 have max range,
+    # s16 is just something in between.
 
     if length == 0:
         # Don't generate many identical datasets
@@ -161,6 +161,7 @@ def unexpected_jump(t, period, length):
         else:
             yield [int(gen.randint(10, 20))]
 
+
 def _geometric(gen, p):
     # Might be wrong, but it's still ok.
-    return int(math.log(1.0 - gen.random()) / math.log(1.0 - p));
+    return int(math.log(1.0 - gen.random()) / math.log(1.0 - p))

@@ -8,9 +8,11 @@ block_start_marker = object()
 block_end_marker = object()
 
 
-def decode_framing_raw(data: Union[bytes, Iterable[bytes]]) -> Union[Literal[block_start_marker, block_end_marker], int]:
-    """ Convert raw bytes (or iterator of raw byte chunks) to iterable of encoded
-    byte values (0-255) and markers (either block_start_marker, or block_end_marker). """
+def decode_framing_raw(
+    data: Union[bytes, Iterable[bytes]]
+) -> Union[Literal[block_start_marker, block_end_marker], int]:
+    """Convert raw bytes (or iterator of raw byte chunks) to iterable of encoded
+    byte values (0-255) and markers (either block_start_marker, or block_end_marker)."""
     escape_byte = b"T"[0]
     start_byte = b"l"[0]
     end_byte = b"#"[0]
@@ -53,10 +55,12 @@ def decode_framing_raw(data: Union[bytes, Iterable[bytes]]) -> Union[Literal[blo
         yield escape_byte
 
 
-def decode_framing(data: Union[bytes, Iterable[bytes]]) -> Iterable[Union[FramingError, FramingBlockIterator]]:
-    """ Iterates over framing block iterators (see FramingBlockIterator),
+def decode_framing(
+    data: Union[bytes, Iterable[bytes]]
+) -> Iterable[Union[FramingError, FramingBlockIterator]]:
+    """Iterates over framing block iterators (see FramingBlockIterator),
     delimited by start and end markers (delimiters are not included in block data).
-    Yields FramingError instances when encountering framing errors. """
+    Yields FramingError instances when encountering framing errors."""
 
     raw_framing = decode_framing_raw(data)
 
@@ -77,11 +81,11 @@ def decode_framing(data: Union[bytes, Iterable[bytes]]) -> Iterable[Union[Framin
 
 
 def _consume_until_marker(it, marker):
-    """ Consume data from the iterator, until marker is found (compared using
+    """Consume data from the iterator, until marker is found (compared using
     operator `is`).
     Returns tuple of number of elements consumed before the marker and bool
     indicating whether the marker was found (False means the iterator was
-    exhausted. """
+    exhausted."""
     i = -1
     for i, v in enumerate(it):
         if v is marker:
@@ -106,9 +110,9 @@ class FramingBlockIterator:
         return v
 
     def _ensure_consumed(self):
-        """ Consume all data up to the following block end marker unless the block
+        """Consume all data up to the following block end marker unless the block
         has already been consumed.
-        Returns an error object if there was a problem, None otherwise. """
+        Returns an error object if there was a problem, None otherwise."""
 
         if self._it is self._empty_iterator:
             return None

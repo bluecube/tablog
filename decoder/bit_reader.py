@@ -2,16 +2,19 @@ from collections.abc import Iterable
 
 
 class IncompleteRead(Exception):
-    """ Exception notifying the reader that there are no more data available in
-    the block of data. """
+    """Exception notifying the reader that there are no more data available in
+    the block of data."""
+
     def __init__(self, nbits, remaining):
         self.nbits = nbits
         self.remaining = remaining
-        super().__init__(f"Tried to read {nbits} bits with only {remaining} bits left in input")
+        super().__init__(
+            f"Tried to read {nbits} bits with only {remaining} bits left in input"
+        )
 
 
 class BitReader:
-    """ Class that allows reading unaligned bit data from byte stream. """
+    """Class that allows reading unaligned bit data from byte stream."""
 
     def __init__(self, data: Iterable[int]):
         # `bytes` is a valid (and expected/intended) type for `data`
@@ -23,9 +26,9 @@ class BitReader:
         self._next_byte()
 
     def read(self, nbits) -> int:
-        """ Read n bits from the input, return as an int.
+        """Read n bits from the input, return as an int.
         Raises EndOfBlock exception if there are exactly zero bits remaining,
-        IncompleteRead if there's not enough (but not zero) bits of data in the input. """
+        IncompleteRead if there's not enough (but not zero) bits of data in the input."""
 
         # Using 9 bits lookahead, so that we always have at least two next bytes
         # loaded and can reliably detect end of block mark
@@ -63,5 +66,5 @@ class BitReader:
             return True
 
     def end_of_block(self):
-        """ Returns True if next read would raise IncompleteRead. """
+        """Returns True if next read would raise IncompleteRead."""
         return self._remaining == 0

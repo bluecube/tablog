@@ -65,7 +65,7 @@ class IntType:
             raise ValueError("First character of type string must be 'u' or 's'")
 
     def convert_unsigned(self, v):
-        """ Convert value of corresponsing unsigned type to the current type. """
+        """Convert value of corresponsing unsigned type to the current type."""
         unsigned_limit = 1 << self.bitsize
         assert 0 <= v < unsigned_limit
         if self.signed and v > self.max():

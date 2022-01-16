@@ -13,13 +13,13 @@ from decoder import framing
     ).map(bytes)
 )
 def test_raw__keeps_normal_values(data):
-    """ Check that the raw framing decoder passes through non-escape bytes untouched. """
+    """Check that the raw framing decoder passes through non-escape bytes untouched."""
     assert list(framing.decode_framing_raw(data)) == list(data)
 
 
 @hypothesis.given(data=hypothesis.strategies.lists(hypothesis.strategies.binary()))
 def test_raw_joined_input_is_identical(data):
-    """ Check that the raw framing decoder outputs the same values when the input is chunked """
+    """Check that the raw framing decoder outputs the same values when the input is chunked"""
     segmented = list(framing.decode_framing_raw(data))
     joined = list(framing.decode_framing_raw(b"".join(data)))
     assert segmented == joined
@@ -46,14 +46,17 @@ def test_raw_two_escape():
 
 
 def test_raw_two_commands():
-    assert list(framing.decode_framing_raw(b"Tll")) == [framing.block_start_marker, ord("l")]
+    assert list(framing.decode_framing_raw(b"Tll")) == [
+        framing.block_start_marker,
+        ord("l"),
+    ]
 
 
 def flattened_framing(b):
-    """ Parses b using framing decoder and converts its output to a flattened byte
+    """Parses b using framing decoder and converts its output to a flattened byte
     string, that captures the complete structure of the decoded framing.
     To keep the flattened format simple, there is no escaping and only numbers are
-    supposed to be used as the actual data inside the framed blocks """
+    supposed to be used as the actual data inside the framed blocks"""
     output = []
     for item in framing.decode_framing(b):
         if isinstance(item, framing.UnexpectedCharacters):
@@ -77,22 +80,28 @@ def test_one_block():
 
 @hypothesis.strategies.composite
 def flattened_block_decoding_inputs(draw):
-    """ This is a test strategy that generates a bytes input and an expected flattened
-    output pairs """
-    data_strategy = hypothesis.strategies.text(alphabet="123", max_size=3) \
-        .map(lambda x: x.encode("ascii"))
-    junk_strategy = hypothesis.strategies.text(alphabet="123#", max_size=5) \
-        .map(lambda x: x.replace("!", "T#").encode("ascii"))
+    """This is a test strategy that generates a bytes input and an expected flattened
+    output pairs"""
+    data_strategy = hypothesis.strategies.text(alphabet="123", max_size=3).map(
+        lambda x: x.encode("ascii")
+    )
+    junk_strategy = hypothesis.strategies.text(alphabet="123#", max_size=5).map(
+        lambda x: x.replace("!", "T#").encode("ascii")
+    )
     block_count = draw(hypothesis.strategies.integers(min_value=0, max_value=3))
-    block_data = draw(hypothesis.strategies.lists(
-        data_strategy, min_size=block_count, max_size=block_count
-    ))
+    block_data = draw(
+        hypothesis.strategies.lists(
+            data_strategy, min_size=block_count, max_size=block_count
+        )
+    )
 
     junk_before = draw(junk_strategy)
     if block_count:
-        gap_junk = draw(hypothesis.strategies.lists(
-            junk_strategy, min_size=block_count - 1, max_size=block_count - 1
-        ))
+        gap_junk = draw(
+            hypothesis.strategies.lists(
+                junk_strategy, min_size=block_count - 1, max_size=block_count - 1
+            )
+        )
         incomplete_last_block = draw(hypothesis.strategies.booleans())
         if incomplete_last_block:
             junk_after = b""

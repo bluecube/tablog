@@ -1,5 +1,6 @@
 import os
 
+
 def bool_arg(s):
     if isinstance(s, bool):
         return s
@@ -16,6 +17,7 @@ def bool_arg(s):
         return bool(s)
     else:
         return bool(i)
+
 
 def sanitizer_arg(s):
     if isinstance(s, bool):
