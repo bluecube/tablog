@@ -35,9 +35,9 @@ env = Environment(
     COMPILATIONDB_USE_ABSPATH=True,
 )
 
-env.Tool('compilation_db')
-env.CompilationDatabase()
-
+if bool_arg(ARGUMENTS.get("use_compilation_db", True)):
+    env.Tool('compilation_db')
+    env.CompilationDatabase()
 env["sanitize"] = sanitizer_arg(ARGUMENTS.get("sanitize", True)) # True, False or "thread"
 env["debug"] = bool_arg(ARGUMENTS.get("debug", True))
 env["native"] = bool_arg(ARGUMENTS.get("native", True))
