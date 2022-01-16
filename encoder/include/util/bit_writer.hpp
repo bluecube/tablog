@@ -40,7 +40,17 @@ public:
             // Then output all the full bytes in the data input
             while (bitCount >= outputBitSize) {
                 output(data & outputMask);
-                data >>= outputBitSize;
+
+                // We need to not do the shift on 8bit types, as this would
+                // invoke UB by doing a larger shift than type size.
+                if constexpr (std::numeric_limits<T>::digits > outputBitSize)
+                    data >>= outputBitSize;
+                else {
+                    assert(bitCount == outputBitSize); // Otherwise we wouldn't be in the loop
+                    // For 8bit values we don't need to modify the data, because
+                    // after the loop finishes bitCount will be zero and no data
+                    // will be used any more
+                }
                 bitCount -= outputBitSize;
             }
 
