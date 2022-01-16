@@ -1,4 +1,6 @@
-# Tablog [![CI badge](https://github.com/bluecube/tablog/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/bluecube/tablog/actions/workflows/CI.yml)
+# Tablog
+
+[![CI status](https://github.com/bluecube/tablog/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/bluecube/tablog/actions/workflows/CI.yml)
 
 A C++17 library for writing and reading compressed tables of (prefereably
 continuous) numerical values, for example logging streams of sensor data on microcontrollers.
