@@ -1,5 +1,4 @@
 import pytest
-import subprocess
 import datasets
 import decoder as decoder_module
 
@@ -31,10 +30,5 @@ def test_dataset_encode_decode(csv_encoder, dataset):
 
         for decoded_row, dataset_row in zip(decoder, dataset):
             assert decoded_row == dataset_row
-
-    except subprocess.CalledProcessError as e:
-        if e.returncode == 128:
-            # It's not really a failure if the csv tablog driver doesn't support the types
-            pytest.skip("Tablog CSV driver doesn't support type signature")
-        else:
-            raise
+    except csv_encoder.UnsupportedTypeSignature as e:
+        pytest.skip(str(e))
