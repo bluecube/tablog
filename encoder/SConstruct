@@ -34,6 +34,7 @@ print("running with -j", GetOption('num_jobs'))
 
 env = Environment(
     ENV={'PATH': os.environ['PATH']},
+    CCFLAGS=ARGUMENTS.get('CCFLAGS', ''),
     COMPILATIONDB_USE_ABSPATH=True,
 )
 

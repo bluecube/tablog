@@ -22,7 +22,13 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Install encoder dependencies
       run: sudo apt-get install -yq scons catch2
+    - name: Get Catch2 for encoder tests
+      uses: actions/checkout@v2
+      with:
+        repository: catchorg/Catch2
+        ref: v2.13.8
+        path: catch2
     - name: Build encoder tests
-      run: cd encoder ; scons use_compilation_db=0
+      run: cd encoder ; scons use_compilation_db=0 CCFLAGS=-I$GITHUB_WORKSPACE/catch2/single_include
     - name: Test with pytest
       run: pytest -v
