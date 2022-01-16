@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from decoder import int_type
 
 import dataclasses

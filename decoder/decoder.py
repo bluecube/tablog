@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from . import decoder_utils
 from . import bit_reader
 from . import framing

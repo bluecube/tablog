@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import hypothesis
 from hypothesis.strategies import SearchStrategy
 
