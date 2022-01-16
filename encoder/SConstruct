@@ -26,6 +26,10 @@ def sanitizer_arg(s):
     else:
         return bool_arg(s)
 
+
+SetOption('num_jobs', os.cpu_count() or 4)
+print("running with -j", GetOption('num_jobs'))
+
 env = Environment(
     ENV={'PATH': os.environ['PATH']},
     COMPILATIONDB_USE_ABSPATH=True,
