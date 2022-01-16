@@ -1,4 +1,4 @@
-from . simple_subprocess import subprocess
+from tools.subprocess_iterator import subprocess_iterator
 
 import os.path
 import threading
@@ -50,7 +50,7 @@ def csv_encoder(compiled_encoder):
     path = compiled_encoder["csv"]
 
     def csv_encoder(dataset):
-        yield from subprocess([path], _serialize_dataset(dataset))
+        yield from subprocess_iterator([path], _serialize_dataset(dataset))
 
     return csv_encoder
 
@@ -79,7 +79,7 @@ class _StreamEncoder:
         self._response = None
         self._exception = None
         self._quit_flag = False
-        self._subprocess_iterator = subprocess(self._command, self._input_iterator())
+        self._subprocess_iterator = subprocess_iterator(self._command, self._input_iterator())
         self._read_thread = threading.Thread(target=self._output_loop)
         self._read_thread.start()
 

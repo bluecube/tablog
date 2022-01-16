@@ -1,22 +1,10 @@
-import subprocess as sys_subprocess
+import subprocess
 import threading
 import io
 import sys
 
 
-class SubprocessFailed(RuntimeError):
-    def __init__(self, command, returncode):
-        self.command = command
-        self.returncode = returncode
-
-    def __str__(self):
-        return (
-            f"Encoder failed with return code {self.returncode!r}"
-            f" (command: {self.command!r})"
-        )
-
-
-def subprocess(command, input_iterator):
+def subprocess_iterator(command, input_iterator):
     """Run a subprocess, yield its stdout.
     Feeds bytes from input_iterator to the process in a separate thread.
     Writes stderr of the process to our own stderr."""
@@ -38,12 +26,12 @@ def subprocess(command, input_iterator):
             else:
                 sys.stderr.write(block.decode("utf-8"))
 
-    proc = sys_subprocess.Popen(
+    proc = subprocess.Popen(
         command,
         bufsize=0,
-        stdout=sys_subprocess.PIPE,
-        stdin=sys_subprocess.PIPE,
-        stderr=sys_subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stdin=subprocess.PIPE,
+        stderr=subprocess.PIPE,
     )
 
     try:
@@ -65,9 +53,9 @@ def subprocess(command, input_iterator):
 
             try:
                 proc.wait(3)
-            except sys_subprocess.TimeoutExpired:
+            except subprocess.TimeoutExpired:
                 proc.kill()
 
     if proc.returncode != 0:
         stderr_thread.join(3)
-        raise SubprocessFailed(command, proc.returncode)
+        raise subprocess.CalledProcessError(proc.returncode, command)
