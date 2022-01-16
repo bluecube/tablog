@@ -21,7 +21,7 @@ jobs:
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Install encoder dependencies
-      run: sudo apt-get install -yq scons
+      run: sudo apt-get install -yq scons catch2
     - name: Build encoder tests
       run: cd encoder ; scons use_compilation_db=0
     - name: Test with pytest
