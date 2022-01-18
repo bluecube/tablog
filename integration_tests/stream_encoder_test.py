@@ -130,6 +130,29 @@ def test_encode_type(stream_encoder, int_type):
     assert decoded == int_type
 
 
+@hypothesis.given(int_type=strategies.int_types())
+def test_type_info(stream_encoder, int_type):
+    """Verify that types in C++ behave the same as IntType class."""
+    encoded = stream_encoder.call("type_info", str(int_type))
+    br = _br(encoded)
+
+    signed = br.read_bit()
+    assert signed == int_type.signed
+
+    sizeof = decoder_utils.decode_elias_gamma(br)
+    assert sizeof == int_type.bytesize()
+
+    digits = decoder_utils.decode_elias_gamma(br)
+    expected_digits = int_type.bitsize - int(signed)
+    assert digits == expected_digits
+
+    abs_min = decoder_utils.decode_elias_gamma(br)
+    assert abs_min == abs(int_type.min())
+
+    max = decoder_utils.decode_elias_gamma(br)
+    assert max == int_type.max()
+
+
 @pytest.mark.parametrize(
     "predictor",
     [

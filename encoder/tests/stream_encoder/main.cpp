@@ -94,6 +94,34 @@ void encode_type(BW& bitWriter) {
     tablog::detail::encode_type<T>(bitWriter);
 }
 
+template <typename T, typename BW>
+void type_info(BW& bitWriter) {
+    bitWriter.write_bit(std::is_signed_v<T>);
+    tablog::detail::elias_gamma(
+        static_cast<std::make_unsigned_t<T>>(sizeof(T)),
+        bitWriter
+    );
+    tablog::detail::elias_gamma(
+        static_cast<std::make_unsigned_t<T>>(std::numeric_limits<T>::digits),
+        bitWriter
+    );
+    const auto min = std::numeric_limits<T>::min();
+    if (min < 0)
+        tablog::detail::elias_gamma(
+            1u + static_cast<std::make_unsigned_t<T>>(-(min + 1)),
+            bitWriter
+        );
+    else
+        tablog::detail::elias_gamma(
+            static_cast<std::make_unsigned_t<T>>(min),
+            bitWriter
+        );
+    tablog::detail::elias_gamma(
+        static_cast<std::make_unsigned_t<T>>(std::numeric_limits<T>::max()),
+        bitWriter
+    );
+}
+
 template <typename PredictorT, typename T, typename BW>
 void predictor_internal(BW& bitWriter, std::string_view args) {
     PredictorT predictor;
@@ -148,6 +176,8 @@ int main() {
                     TYPED_CALL_UNSIGNED(adaptive_exp_golomb, type, bitWriter, rest);
                 else if (func == "encode_type")
                     TYPED_CALL(encode_type, type, bitWriter);
+                else if (func == "type_info")
+                    TYPED_CALL(type_info, type, bitWriter);
                 else if (func == "linear3_predictor")
                     TYPED_CALL(linear3_predictor, type, bitWriter, rest);
                 else if (func == "linear12adapt_predictor")
