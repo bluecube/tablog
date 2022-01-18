@@ -63,8 +63,6 @@ def flattened_framing(b):
             output.append(b"C")
         elif isinstance(item, framing.UnexpectedEndOfData):
             output.append(b"X")
-        elif isinstance(item, framing.FramingError):
-            output.append(b"E")
         else:
             assert isinstance(item, collections.abc.Iterator)
             output.append(b"(")
