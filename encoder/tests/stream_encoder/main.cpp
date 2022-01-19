@@ -79,7 +79,6 @@ void bit_pattern2(BW& bitWriter, std::string_view args) {
 void framing(std::string& output, std::string_view args) {
     tablog::detail::Framing f([&output](uint8_t c) mutable { output.push_back(c); });
     for (auto c: args) {
-        std::cerr << c << "\n";
         if (c == '1')
             f.start();
         else if (c == '2')
