@@ -39,8 +39,18 @@ public:
     /// Returns a predicted value
     /// Prediction always works, regardless of number of data points provided.
     T predict_and_feed(T value) {
+        using UnsignedT = std::make_unsigned_t<T>;
         const T prediction1 = prev[1];
-        const T prediction2 = 2 * prev[1] - prev[0]; // Might overflow, but that's ok.
+        const T prediction2 = static_cast<T>(
+            2u * static_cast<UnsignedT>(prev[1]) - static_cast<UnsignedT>(prev[0])
+        );
+        // Might overflow, but that's ok. We're avoiding UB here by going through
+        // unsigned values.
+        // Cast from unsigned to signed should be fine according to the standard,
+        // but we still might get bitten by the cast from unsigned to signed
+        // (which is only implementation defined) if trying to run on a platform
+        // where overflowing cast from unsigned to signed is not two's complement...
+
 
         const auto prediction = selector >= 0 ? prediction1 : prediction2;
 
