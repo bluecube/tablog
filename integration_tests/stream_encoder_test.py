@@ -156,7 +156,6 @@ def test_type_info(stream_encoder, int_type):
 @pytest.mark.parametrize(
     "predictor",
     [
-        ("linear3", predictors.Linear.factory(3)),
         (
             "linear12adapt",
             predictors.Adapt.factory(

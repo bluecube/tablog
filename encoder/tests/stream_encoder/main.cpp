@@ -132,11 +132,6 @@ void predictor_internal(BW& bitWriter, std::string_view args) {
     }
 }
 
-template <typename T, typename BW>
-void linear3_predictor(BW& bitWriter, std::string_view args) {
-    predictor_internal<tablog::predictors::SimpleLinear<T, 3>, T, BW>(bitWriter, args);
-}
-
 template <typename T,  typename BW>
 void linear12adapt_predictor(BW& bitWriter, std::string_view args) {
     predictor_internal<tablog::predictors::Linear12Adapt<T>, T, BW>(bitWriter, args);
@@ -177,8 +172,6 @@ int main() {
                     TYPED_CALL(encode_type, type, bitWriter);
                 else if (func == "type_info")
                     TYPED_CALL(type_info, type, bitWriter);
-                else if (func == "linear3_predictor")
-                    TYPED_CALL(linear3_predictor, type, bitWriter, rest);
                 else if (func == "linear12adapt_predictor")
                     TYPED_CALL(linear12adapt_predictor, type, bitWriter, rest);
                 else

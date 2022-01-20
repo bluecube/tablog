@@ -9,24 +9,6 @@
 
 namespace tablog::predictors {
 
-/// Predicts next value by looking at the average derivative of the last N values
-template <typename T, std::size_t N>
-class SimpleLinear {
-public:
-    using Type = T;
-
-    /// Returns a predicted value
-    /// Prediction always works, regardless of number of data points provided.
-    T predict_and_feed(T value) {
-        auto prediction = detail::extrapolate<T, N - 1>(history.front(), history.back());
-        history.push_back(value);
-        return prediction;
-    }
-
-protected:
-    util::CircularBufferFixed<T, N, uint_fast8_t> history;
-};
-
 /// Keeps a saturating counter that switches between two modes:
 /// 1. Predict no change of value
 /// 2. Predict a constant first derivative based on last two values
