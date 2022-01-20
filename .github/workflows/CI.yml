@@ -38,7 +38,7 @@ jobs:
 
 
     - name: Test with pytest
-      run: pytest -v --cov=decoder
+      run: pytest -v --cov=decoder --cov=integration_tests
 
 
     - name: Process encoder coverage
