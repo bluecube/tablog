@@ -1,3 +1,9 @@
+# Testing
 pytest==6.2.5
 pytest-cpp==2.0.0
 hypothesis==6.27.2
+
+# Coverage
+pytest-cov==3.0.0
+gcovr==5.0
+coveralls==3.3.1
