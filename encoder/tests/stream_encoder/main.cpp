@@ -175,7 +175,7 @@ int main() {
                 else if (func == "linear12adapt_predictor")
                     TYPED_CALL(linear12adapt_predictor, type, bitWriter, rest);
                 else
-                    throw std::runtime_error("Unknown func");
+                    throw std::runtime_error("Unknown func"); // GCOV_EXCL_LINE
             }
 
             bitWriter.end();
