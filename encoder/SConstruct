@@ -45,6 +45,7 @@ env["sanitize"] = sanitizer_arg(ARGUMENTS.get("sanitize", True)) # True, False o
 env["debug"] = bool_arg(ARGUMENTS.get("debug", True))
 env["native"] = bool_arg(ARGUMENTS.get("native", True))
 env["clang"] = bool_arg(ARGUMENTS.get("clang", False))
+env["coverage"] = bool_arg(ARGUMENTS.get("coverage", False))
 
 env.AppendUnique(
     CCFLAGS=["-std=c++17", "-fdiagnostics-color", "-Werror", "-Wall", "-Wextra"],
@@ -79,6 +80,11 @@ if env["native"]:
 if env["clang"]:
     env.Tool("clang")
     env.Tool("clangxx")
+
+if env["coverage"]:
+    env.AppendUnique(
+        CCFLAGS=["--coverage"],
+    )
 
 env.AppendUnique(LINKFLAGS=env["CCFLAGS"])
 
