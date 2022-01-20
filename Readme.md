@@ -1,6 +1,7 @@
 # Tablog
 
 [![CI status](https://github.com/bluecube/tablog/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/bluecube/tablog/actions/workflows/CI.yml)
+[![Coverage Status](https://coveralls.io/repos/github/bluecube/tablog/badge.svg?branch=master)](https://coveralls.io/github/bluecube/tablog?branch=master)
 
 A C++17 library for writing and reading compressed tables of (prefereably
 continuous) numerical values, for example logging streams of sensor data on microcontrollers.
