@@ -41,6 +41,8 @@ env = Environment(
 if bool_arg(ARGUMENTS.get("use_compilation_db", True)):
     env.Tool('compilation_db')
     env.CompilationDatabase()
+else:
+    print("Not using compilation database")
 env["sanitize"] = sanitizer_arg(ARGUMENTS.get("sanitize", True)) # True, False or "thread"
 env["debug"] = bool_arg(ARGUMENTS.get("debug", True))
 env["native"] = bool_arg(ARGUMENTS.get("native", True))
