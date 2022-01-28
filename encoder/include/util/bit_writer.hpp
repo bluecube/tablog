@@ -30,33 +30,32 @@ public:
             buffer |= data << bufferUsed;
             bufferUsed += bitCount;
         } else {
-            // First use beginning of the data to fill the rest of the buffer
-            buffer |= (static_cast<BufferT>(data) << bufferUsed) & outputMask;
-            output(buffer);
-            auto shift = outputBitSize - bufferUsed;
-            data >>= shift;
+            // Output the first whole byte
+            output(buffer | ((data << bufferUsed) & outputMask));
+            const auto shift = outputBitSize - bufferUsed;
             bitCount -= shift;
 
-            // Then output all the full bytes in the data input
-            while (bitCount >= outputBitSize) {
-                output(data & outputMask);
+            if constexpr (std::numeric_limits<T>::digits > outputBitSize) {
+                data >>= shift;
 
-                // We need to not do the shift on 8bit types, as this would
-                // invoke UB by doing a larger shift than type size.
-                if constexpr (std::numeric_limits<T>::digits > outputBitSize)
+                // Then output all the full bytes in the data input
+                while (bitCount >= outputBitSize) {
+                    output(data & outputMask);
                     data >>= outputBitSize;
-                else {
-                    assert(bitCount == outputBitSize); // Otherwise we wouldn't be in the loop
-                    // For 8bit values we don't need to modify the data, because
-                    // after the loop finishes bitCount will be zero and no data
-                    // will be used any more
+                    bitCount -= outputBitSize;
                 }
-                bitCount -= outputBitSize;
-            }
 
-            // Set the buffer to the remainder.
-            buffer = data & ((1 << bitCount) - 1);
-            bufferUsed = bitCount;
+                // Set the buffer to the remainder.
+                buffer = data & ((1 << bitCount) - 1);
+                bufferUsed = bitCount;
+            } else {
+                // Specialized version for 8bit T, to avoid UB when shifting by exactly 8 bits
+                bufferUsed = bitCount;
+                if (bufferUsed)
+                    buffer = data >> shift;
+                else
+                    buffer = 0;
+            }
         }
 
         assert(bufferUsed < outputBitSize);
