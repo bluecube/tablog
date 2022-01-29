@@ -60,7 +60,7 @@ public:
 
     void encode(const std::vector<std::string_view>& row) override {
         if (row.size() != sizeof...(ValueTs))
-            throw std::runtime_error("Wrong number of records on row");
+            throw std::runtime_error("Wrong number of records on row"); // GCOV_EXCL_LINE
 
         encode(row, std::index_sequence_for<ValueTs...>{});
     }
