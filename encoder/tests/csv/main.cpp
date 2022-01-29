@@ -102,31 +102,6 @@ const std::map<
 };
 
 
-std::vector<int64_t> parse_line(const std::string& line) {
-    std::vector<int64_t> ret;
-
-    const char* p = line.data();
-    char* end;
-
-    while (true) {
-        auto value = strtoll(p, &end, 10);
-
-        if (p == end)
-            throw std::runtime_error("Error when parsing data line, no number found");
-
-        ret.push_back(value);
-
-        if (*end == '\n' || *end == '\r' || *end == '\0')
-            break;
-        else if (*end == ',')
-            p = end + 1;
-        else
-            throw std::runtime_error("Error when parsing data line, junk character found");
-    }
-
-    return ret;
-}
-
 int main() {
     std::string columnLabelsStr;
     std::getline(std::cin, columnLabelsStr);
