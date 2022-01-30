@@ -98,7 +98,13 @@ const std::map<
     FACTORY_ENTRY(uint32_t),
     FACTORY_ENTRY(int64_t),
     FACTORY_ENTRY(uint64_t),
-    FACTORY_ENTRY(int64_t, uint32_t, uint16_t, uint16_t, uint16_t, uint32_t) // dataset1/tph.csv
+    FACTORY_ENTRY(int64_t, uint32_t, uint16_t, uint16_t, uint16_t, uint32_t), // dataset1/tph.csv
+    FACTORY_ENTRY(int64_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t), // dataset1/power.csv
+    FACTORY_ENTRY(int64_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t), //dataset1/soc.csv
+    FACTORY_ENTRY(uint32_t, uint32_t, uint32_t, int64_t), // gcode/parts.csv
+    FACTORY_ENTRY(int64_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t), // phone_imu/imu.csv
+    FACTORY_ENTRY(uint32_t, int16_t, int16_t, int16_t), // phone_imu/magnetometer.csv
+    FACTORY_ENTRY(uint32_t, int16_t, uint32_t), // twinsen/*.csv
 };
 
 
