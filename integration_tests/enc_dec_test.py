@@ -30,5 +30,5 @@ def test_dataset_encode_decode(csv_encoder, dataset):
 
         for decoded_row, dataset_row in zip(decoder, dataset):
             assert decoded_row == dataset_row
-    except csv_encoder.UnsupportedTypeSignature as e:
+    except csv_encoder.UnsupportedTypeSignature as e:  # pragma: no cover
         pytest.skip(str(e))
