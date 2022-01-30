@@ -41,6 +41,9 @@ def table_rows():
     log_ratio_sum = 0
     count = 0
 
+    csv_log_ratio_sum = 0
+    csv_count = 0
+
     for dataset in datasets.all_datasets(True):
         try:
             t_size = tablog_compressed_size(dataset)
@@ -49,13 +52,19 @@ def table_rows():
 
         g_size = gzip_compressed_size(dataset)
         ratio = t_size / g_size
-        log_ratio_sum += math.log(ratio)
+        log_ratio = math.log(ratio)
+        log_ratio_sum += log_ratio
         count += 1
+        if dataset.name.endswith(".csv"):
+            csv_log_ratio_sum += log_ratio
+            csv_count += 1
         yield f"|`{dataset.name}`|{t_size} B ({format_ratio(ratio)})|{g_size} B|"
 
     mean_ratio = math.exp(log_ratio_sum / count)
+    csv_mean_ratio = math.exp(csv_log_ratio_sum / csv_count)
 
-    yield f"|Geometric mean|{format_ratio(mean_ratio)}||"
+    yield f"|Geometric mean -- CSV datasets|{format_ratio(csv_mean_ratio)}||"
+    yield f"|Geometric mean -- all|{format_ratio(mean_ratio)}||"
 
 
 def format_ratio(r):

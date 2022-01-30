@@ -142,5 +142,6 @@ continuous) numerical values, for example logging streams of sensor data on micr
 |`unexpected_jump("s64", 10000, length=100)`|75 B (-46.0 %)|139 B|
 |`unexpected_jump("s64", 100, length=5000)`|26895 B (**+605.4 %**)|3813 B|
 |`unexpected_jump("s64", 10000, length=5000)`|3324 B (-11.0 %)|3733 B|
-|Geometric mean|-12.8 %||
+|Geometric mean -- CSV datasets|-44.7 %||
+|Geometric mean -- all|-12.8 %||
 
