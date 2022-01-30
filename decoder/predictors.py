@@ -10,7 +10,7 @@ class _PredictorFactory:
     def __call__(self, t):
         return self._cls(t, *self._args, **self._kwargs)
 
-    def __str__(self):
+    def __repr__(self):  # pragma: no cover
         return (
             self._cls.__name__
             + "("
