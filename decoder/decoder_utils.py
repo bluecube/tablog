@@ -18,7 +18,12 @@ class AdaptiveExpGolombDecoder:
     def decode(self, bit_reader):
         k = self._state >> self._state_shift
         p = decode_elias_gamma(bit_reader)
-        self._state = max(0, min(self._state + p - 1, self._max_state))
+
+        if p == 0 and self._state > 0:
+            self._state -= 1
+        elif p > 1 and self._state < self._max_state:
+            self._state += 1
+
         return p << k | bit_reader.read(k)
 
 

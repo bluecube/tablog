@@ -47,6 +47,10 @@ inline void elias_gamma(T n, BW& bitWriter) {
 /// Eg. 64 bit value, that has low values and low prediction errors, suddenly
 /// jumping to INT64_MAX. This would cause the unary part of golomb coding to
 /// explode to 2**64 bits of length.
+///
+/// Unlike the article, we also only ever update the state variable by +-1.
+/// This avoids problems with isolated misspredictions, where the large error would
+/// skew the state towards too large values of k.
 template <typename T>
 class AdaptiveExpGolombEncoder {
 public:
@@ -58,15 +62,11 @@ public:
         elias_gamma(p, bitWriter); // Quotient; elias gamma can't encode zeros, therefore + 1
         bitWriter.write(n, k); // Remainder (masking upper bits is performed by bit writer)
 
-        auto tmpState = state + p;
-
         // Update the adaptive shift value
-        if (tmpState > maxState)
-            state = maxState;
-        else if (tmpState == 0)
-            state = 0;
-        else
-            state = tmpState - 1;
+        if (p == 0 && state > 0)
+            state -= 1;
+        else if (p > 1 && state < maxState)
+            state += 1;
     }
 
     /// For debugging: Return the internal state of the encoder
