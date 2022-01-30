@@ -26,7 +26,7 @@ def gzip_compressed_size(dataset):
             self.count += len(b)
 
     measurement = MeasurementOnlyFile()
-    with gzip.open(measurement, "w") as gz:
+    with gzip.open(measurement, "w", compresslevel=9) as gz:
         for row in dataset:
             for v, t, in zip(row, dataset.field_types):
                 gz.write(v.to_bytes(length=t.bytesize(), byteorder="big", signed=t.signed))
@@ -35,7 +35,7 @@ def gzip_compressed_size(dataset):
 
 
 def table_rows():
-    yield "|Dataset|Tablog: Compressed size|Gzip: Compressed size|"
+    yield "|Dataset|Tablog: Compressed size|gzip -9: Compressed size|"
     yield "|-------|-----------------------|---------------------|"
 
     log_ratio_sum = 0

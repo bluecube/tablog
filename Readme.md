@@ -15,7 +15,7 @@ continuous) numerical values, for example logging streams of sensor data on micr
 
 ## Compression ratio overview
 
-|Dataset|Tablog: Compressed size|Gzip: Compressed size|
+|Dataset|Tablog: Compressed size|gzip -9: Compressed size|
 |-------|-----------------------|---------------------|
 |`dataset1/drift.csv`|14795 B (-67.6 %)|45646 B|
 |`dataset1/power.csv`|448931 B (-16.8 %)|539491 B|
