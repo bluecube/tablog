@@ -70,8 +70,10 @@ def patched_readme(file):
     patch_start_re = re.compile(r"^\s*#+\s*Compression ratio overview")
     patch_end_re = re.compile(r"^\s*#")
 
+    file_it = iter(file)
+
     found_start = False
-    for line in file:
+    for line in file_it:
         yield line
         if patch_start_re.match(line):
             found_start = True
@@ -84,11 +86,11 @@ def patched_readme(file):
     yield from (row + "\n" for row in table_rows())
     yield "\n"
 
-    for line in file:
+    for line in file_it:
         if patch_end_re.match(line):
             yield line
             break
-    yield from file
+    yield from file_it
 
 
 def patch_readme():
