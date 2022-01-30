@@ -10,18 +10,17 @@ import hashlib
 import functools
 
 
-def all_datasets(length):
+def all_datasets(lengths):
+    lengths = list(lengths)
     types = [int_type.IntType.from_string(s) for s in ["u8", "s16", "u64", "s64"]]
     # u8 is easy to analyze by looking at it, u64 and s64 have max range,
     # s16 is just something in between.
 
-    if length == 0:
+    if 0 in lengths:
         # Don't generate many identical datasets
         for t in types:
             yield dataset.Dataset(f'empty("{t}")', ["value"], [t], lambda: iter([]), 0)
-        return
 
-    dataset_name_suffix = f", length={length})"
     currentmod = sys.modules[__name__]
 
     for func_name, func in inspect.getmembers(currentmod, inspect.isfunction):
@@ -31,23 +30,27 @@ def all_datasets(length):
             continue
         for t in types:
             dataset_name_prefix = f'{func_name}("{t}"'
-            if "period" in inspect.signature(func).parameters:
-                for period in [100, 10000]:
+            for length in lengths:
+                if length == 0:
+                    continue
+                dataset_name_suffix = f", length={length})"
+                if "period" in inspect.signature(func).parameters:
+                    for period in [100, 10000]:
+                        yield dataset.Dataset(
+                            f"{dataset_name_prefix}, {period}{dataset_name_suffix}",
+                            ["value"],
+                            [t],
+                            functools.partial(func, t, period, length),
+                            length,
+                        )
+                else:
                     yield dataset.Dataset(
-                        f"{dataset_name_prefix}, {period}{dataset_name_suffix}",
+                        dataset_name_prefix + dataset_name_suffix,
                         ["value"],
                         [t],
-                        functools.partial(func, t, period, length),
+                        functools.partial(func, t, length),
                         length,
                     )
-            else:
-                yield dataset.Dataset(
-                    dataset_name_prefix + dataset_name_suffix,
-                    ["value"],
-                    [t],
-                    functools.partial(func, t, length),
-                    length,
-                )
 
 
 def _remap(f, input_min, input_max, x_scale, t, length):

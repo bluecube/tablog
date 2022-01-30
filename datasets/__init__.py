@@ -7,8 +7,7 @@ def all_datasets(include_synthetic=True):
     """Yield all csv and synthetic datasets available"""
     yield from csv_datasets.all_datasets()
     if include_synthetic:
-        for length in [0, 100, 5000]:
-            yield from synthetic.all_datasets(length)
+        yield from synthetic.all_datasets([0, 100, 5000])
 
 
 def individual_datasets(*args, **kwargs):
