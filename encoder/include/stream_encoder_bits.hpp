@@ -92,23 +92,6 @@ protected:
     static constexpr uint_fast8_t maxState = (std::numeric_limits<T>::digits << stateShift) - 1;
 };
 
-/// Encode the string into the output as a sequence
-/// Null string is equivalent to empty string.
-template <typename BW>
-inline void encode_string(const char* str, BW& bitWriter) {
-    (void)str;
-    (void)bitWriter;
-
-    /*if (str) {
-        ValueCompressor<uint8_t, predictors::Constant<uint8_t, 'e'>> compressor;
-        number(strlen(str));
-        while (*fieldName)
-            compressor.write(*(fieldName++), *this);
-    }
-    else
-        number((uint8_fast_t)0);*/
-}
-
 template <typename BW>
 inline void encode_type(bool signedType, uint_fast8_t typeSize, BW& bitWriter) {
     uint_fast8_t typeExponent = small_int_log2(typeSize);

@@ -2,6 +2,7 @@
 
 #include "util/bit_writer.hpp"
 #include "stream_encoder_bits.hpp"
+#include "string_compression.hpp"
 #include "framing.hpp"
 
 #include <cstdint>
@@ -32,7 +33,11 @@ public:
     /// Output field header. Field headers must directly follow header, with the
     /// same count as fieldCount in the header.
     void field_header(const char* fieldName, bool signedType, uint_fast8_t typeSize) {
-        encode_string(fieldName, output);
+        (void)fieldName;
+        /*if (fieldName)
+            tablog::string::compress_string(fieldName, output);
+        else
+            tablog::string::compress_string(std::string_view(), output);*/
         encode_type(signedType, typeSize, output);
     }
 

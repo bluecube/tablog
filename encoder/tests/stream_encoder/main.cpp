@@ -49,8 +49,8 @@ void adaptive_exp_golomb(BW& bitWriter, std::string_view args) {
 }
 
 template <typename BW>
-void string(BW& bitWriter, std::string_view args) {
-    tablog::detail::encode_string(args.data(), bitWriter); // Assume that args is zero terminated
+void str(BW& bitWriter, std::string_view args) {
+    tablog::string::compress_string(args.data(), bitWriter); // Assume that args is zero terminated
 }
 
 /// Test pattern consisting of bytes with increasing value
@@ -158,7 +158,7 @@ int main() {
             else if (func == "bit_pattern2")
                 bit_pattern2(bitWriter, rest);
             else if (func == "string")
-                string(bitWriter, rest);
+                str(bitWriter, rest);
             else {
                 const auto type = next_token(rest).value();
 
