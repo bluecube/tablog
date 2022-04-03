@@ -221,8 +221,10 @@ TEST_CASE("String compression: Lookup symbol match") {
 
     SECTION("Followed by more data") {
         char following = GENERATE(
-            trie::test_data::example[0],
-            trie::test_data::missingShort,
+            Catch::Generators::values<char>({
+                trie::test_data::example[0],
+                trie::test_data::missingShort
+            }),
             Catch::Generators::take(
                 20,
                 Catch::Generators::random('\0', '\xff')
