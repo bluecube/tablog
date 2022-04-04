@@ -127,17 +127,14 @@ TEST_CASE("String compression: Next character true") {
     );
     const auto& node = trie::flattened[i];
 
-    const auto nextChar = GENERATE(
-        Catch::Generators::range('\0', '\xff')
+    const auto nextCharFloat = GENERATE(
+        Catch::Generators::take(
+            3,
+            Catch::Generators::random(0.0, 1.0)
+        )
     );
 
-    const auto filterLambda = [&](char c) {
-        for (uint i = 0; i < node.childCount; ++i)
-            if (trie::flattened[i + node.childIndex].c == c) return true;
-        return false;
-    };
-    if (!filterLambda(nextChar))
-        return; // Working around inability to capture variables in GENERATE
+    const auto nextChar = trie::flattened[node.childIndex + size_t(nextCharFloat * node.childCount)].c;
 
     const auto nextNode = trie::lookup_next_char(&node, nextChar);
 
@@ -239,40 +236,6 @@ TEST_CASE("String compression: Lookup symbol match") {
     REQUIRE(result.first->c == matchingString[matchingString.size() - 1]);
     REQUIRE(result.second == matchingString.size());
 }
-
-/*TEST_CASE("String compression: Lookup symbol match on shortened string") {
-    auto [matchingString, node] = GENERATE(
-        Catch::Generators::take(
-            50,
-            Catch::Generators::filter(
-                [](const auto& v) { return v.first.size() > 1; },
-                Catch::Generators::GeneratorWrapper<std::pair<std::string, const trie::Node*>>(
-                    std::make_unique<TrieStringGenerator>()
-                )
-            )
-        )
-    );
-
-    std::cout << matchingString << "\n";
-    matchingString.pop_back();
-
-    SECTION("With exact length input") {
-        // Nothing to do here
-    }
-
-    SECTION("Followed by matching data") {
-        // find a character that is a valid first character, but is not a 
-    }
-
-    SECTION("Followed by not matching data") {
-
-    }
-
-    const auto result = trie::lookup_symbol(matchingString);
-    REQUIRE(result.first != nullptr);
-    REQUIRE(result.first->c == matchingString[matchingString.size() - 1]);
-    REQUIRE(result.second == matchingString.size());
-}*/
 
 TEST_CASE("String compression empty string") {
     /// Check that empty string consists of exactly two 1 bits.
