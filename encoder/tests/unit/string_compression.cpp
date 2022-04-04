@@ -79,8 +79,7 @@ TEST_CASE("String compression: Flattened trie incoming edges") {
             const auto childrenEndIndex = trie::flattened[j].childCount;
 
             bool isIncomingLink = (i >= childrenStartIndex && i < childrenEndIndex);
-            if (isIncomingLink)
-                REQUIRE(false);
+            REQUIRE(!isIncomingLink);
         }
     }
 }
@@ -133,11 +132,9 @@ TEST_CASE("String compression: Next character true") {
             Catch::Generators::random(0.0, 1.0)
         )
     );
-
     const auto nextChar = trie::flattened[node.childIndex + size_t(nextCharFloat * node.childCount)].c;
 
     const auto nextNode = trie::lookup_next_char(&node, nextChar);
-
     REQUIRE(nextNode != nullptr);
     REQUIRE(nextNode->c == nextChar);
 }
@@ -146,28 +143,37 @@ TEST_CASE("String compression: Next character false") {
     const auto i = GENERATE(
         Catch::Generators::take(
             20,
-            Catch::Generators::filter(
-                [](auto i) { return trie::flattened[i].childCount > 0; },
-                Catch::Generators::random<unsigned>(0, nodeCount - 1)
-            )
+            Catch::Generators::random<unsigned>(0, nodeCount - 1)
         )
     );
     const auto& node = trie::flattened[i];
 
-    const auto nextChar = GENERATE(
-        Catch::Generators::range('\0', '\xff')
-    );
+    // Working around inability of Catch2 to make generator dependent on other values.
+    // Construct a vector of characters that are not successors of node, then select
+    // one of them using a floating point index.
+    std::vector<char> nextCharsNotInNode;
+    for (uint j = 0; j < 255; ++j) {
+        const char c = static_cast<char>(j);
 
-    const auto filterLambda = [&](char c) {
-        for (uint i = 0; i < node.childCount; ++i)
-            if (trie::flattened[i + node.childIndex].c == c) return true;
-        return false;
+        bool cInNext = [&]() {
+            for (uint i = 0; i < node.childCount; ++i)
+                if (trie::flattened[i + node.childIndex].c == c)
+                    return true;
+            return false;
+        }();
+
+        if (!cInNext)
+            nextCharsNotInNode.push_back(c);
     };
-    if (filterLambda(nextChar))
-        return; // Working around inability to capture variables in GENERATE
+    const auto nextCharFloat = GENERATE(
+        Catch::Generators::take(
+            3,
+            Catch::Generators::random(0.0, 1.0)
+        )
+    );
+    const auto nextChar = nextCharsNotInNode[size_t(nextCharFloat * nextCharsNotInNode.size())];
 
     const auto nextNode = trie::lookup_next_char(&node, nextChar);
-
     REQUIRE(nextNode == nullptr);
 }
 
