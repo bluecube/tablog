@@ -5,6 +5,7 @@ from decoder import decoder_utils
 from decoder import bit_reader
 from decoder import framing
 from decoder import predictors
+from decoder import string
 from decoder.tests import strategies
 
 
@@ -184,3 +185,19 @@ def test_predictors_equality(stream_encoder, predictor, data):
         expected.append(predictor.predict_and_feed(value))
 
     assert expected == decoded
+
+
+@hypothesis.given(s=hypothesis.strategies.binary(max_size=1000))
+@hypothesis.example(s=b"tion")
+@hypothesis.example(s=b"@#$%")
+@hypothesis.example(s=b"")
+@hypothesis.example(s=b"timestamp")
+def test_string_encoding(stream_encoder, s):
+    s = b"tion"
+    encoded = stream_encoder.call("string", s)
+    decoded = string.decode_string(_br(encoded))
+    assert decoded == s
+
+
+# 'ea'   -> 01101000 (8b)
+# 'tion' -> 00010110 (8b)

@@ -50,7 +50,7 @@ void adaptive_exp_golomb(BW& bitWriter, std::string_view args) {
 
 template <typename BW>
 void str(BW& bitWriter, std::string_view args) {
-    tablog::string::compress_string(args.data(), bitWriter); // Assume that args is zero terminated
+    tablog::string::compress_string(args, bitWriter);
 }
 
 /// Test pattern consisting of bytes with increasing value
