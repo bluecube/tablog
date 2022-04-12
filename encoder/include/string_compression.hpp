@@ -159,6 +159,9 @@ constexpr const Node* lookup_next_char(const Node* base, char c) {
 /// Read characters from the string and find longest available match in the trie.
 /// Returns tuple of a pointer to the trie array and number of characters consumed.
 constexpr std::pair<const Node*, size_t> lookup_symbol(std::string_view str) {
+    if (str.empty())
+        return {nullptr, 0u};
+
     auto current = lookup_first_char(str[0]);
     if (!current)
         return {nullptr, 0u};

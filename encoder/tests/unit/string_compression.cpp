@@ -243,18 +243,41 @@ TEST_CASE("String compression: Lookup symbol match") {
     REQUIRE(result.second == matchingString.size());
 }
 
-TEST_CASE("String compression empty string") {
+TEST_CASE("String compression: Lookup symbol empty") {
+    const auto result = trie::lookup_symbol(std::string_view());
+    REQUIRE(result.first == nullptr);
+    REQUIRE(result.second == 0);
+}
+
+/// Check that compression doesn't fail on pre-selected inputs.
+/// This is mostly  using only the internal asserts as without a decoder we can't
+/// check correctness too well.
+TEST_CASE("String compression smoke tests") {
+    tablog::util::StringBitWriter bwStr;
+
     /// Check that empty string consists of exactly two 1 bits.
     /// This is mostly an implementation detail, but it verifies that the 
     /// encoding is not completely off.
+    SECTION("Empty string") {
+        compress_string("", bwStr);
+        bwStr.flush();
 
-    tablog::util::StringBitWriter bwStr;
-    compress_string("", bwStr);
-    bwStr.flush();
+        tablog::util::StringBitWriter bwExpected;
+        bwExpected.write(0b11u, 2);
+        bwExpected.flush();
 
-    tablog::util::StringBitWriter bwExpected;
-    bwExpected.write(0b11u, 2);
-    bwExpected.flush();
+        REQUIRE(bwStr.data == bwExpected.data);
+    }
 
-    REQUIRE(bwStr.data == bwExpected.data);
+    SECTION("Long example") {
+        compress_string(trie::test_data::example, bwStr);
+    }
+
+    SECTION("Non-alpha") {
+        compress_string("@#$%^", bwStr);
+    }
+
+    SECTION("Missing long") {
+        compress_string(trie::test_data::missingLong, bwStr);
+    }
 }

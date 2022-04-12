@@ -193,7 +193,6 @@ def test_predictors_equality(stream_encoder, predictor, data):
 @hypothesis.example(s=b"")
 @hypothesis.example(s=b"timestamp")
 def test_string_encoding(stream_encoder, s):
-    s = b"tion"
     encoded = stream_encoder.call("string", s)
     decoded = string.decode_string(_br(encoded))
     assert decoded == s
