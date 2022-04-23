@@ -80,8 +80,8 @@ def generate_table_data_rows(datasets, size_functions):
             csv_log_ratio_sums = list(map(operator.add, csv_log_ratio_sums, log_ratios))
             csv_count += 1
 
-        yield f"`{dataset.name}`|{sizes[0]} B|" + \
-            "|".join(f"{size} B ({format_ratio(size / sizes[0])})" for size in sizes[1:]) + \
+        yield f"`{dataset.name}`|{format_size(sizes[0])}|" + \
+            "|".join(f"{format_size(size)} ({format_ratio(size / sizes[0])})" for size in sizes[1:]) + \
             "|"
 
     yield "|Geometric mean -- CSV datasets||" + \
@@ -108,6 +108,16 @@ def format_ratio(r):
         return "**" + s + "**"
     else:
         return s
+
+
+def format_size(s):
+    prefixes = ["", "k", "M", "G", "T"]
+
+    for i, prefix in enumerate(prefixes):
+        scale = 1000**i
+        if s / scale < 1000:
+            return f"{s/scale:.3g} {prefix}B"
+    raise ValueError("Too big")
 
 
 def patched_readme(file):
