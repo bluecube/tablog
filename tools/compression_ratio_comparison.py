@@ -9,6 +9,7 @@ import gzip
 import os.path
 import re
 import operator
+import csv
 
 from . import encoder_wrappers
 import datasets
@@ -21,9 +22,23 @@ class MeasurementOnlyFile:
     def write(self, b):
         self.count += len(b)
 
+    def flush(self):
+        pass
+
 
 def tablog_compressed_size(dataset):
     return sum(len(chunk) for chunk in encoder_wrappers.csv_encoder(dataset))
+
+
+def csv_size(dataset):
+    measurement = MeasurementOnlyFile()
+    with gzip.open(measurement, "wt", compresslevel=9) as gz:
+        csv_writer = csv.writer(gz)
+
+        csv_writer.writerow(dataset.field_names)
+        csv_writer.writerows(dataset)
+
+    return measurement.count
 
 
 def gzip_compressed_size(dataset):
@@ -93,12 +108,12 @@ def generate_table_data_rows(datasets, size_functions):
 
 
 def generate_table_rows():
-    yield "|Dataset|Tablog: Compressed size|Gzip: Compressed size|Gzip Δ: Compressed size|"
-    yield "|-------|-----------------------|---------------------|-----------------------|"
+    yield "|Dataset|Tablog|Gzip CSV|Gzip binary|Gzip binary Δ|"
+    yield "|-------|------|--------|-----------|-------------|"
 
     yield from generate_table_data_rows(
         datasets.all_datasets(True),
-        [tablog_compressed_size, gzip_compressed_size, gzip_delta_compressed_size]
+        [tablog_compressed_size, csv_size, gzip_compressed_size, gzip_delta_compressed_size]
     )
 
 
