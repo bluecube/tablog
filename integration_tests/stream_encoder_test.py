@@ -196,7 +196,3 @@ def test_string_encoding(stream_encoder, s):
     encoded = stream_encoder.call("string", s)
     decoded = string.decode_string(_br(encoded))
     assert decoded == s
-
-
-# 'ea'   -> 01101000 (8b)
-# 'tion' -> 00010110 (8b)
