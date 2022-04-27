@@ -113,11 +113,14 @@ class StreamEncoder:
                 # Restart in case of a crash
                 self._start()
 
+            args = b",".join(self._encode(arg) for arg in args)
+
             self._function_call = (
                 self._encode(function)
                 + b","
-                + b",".join(self._encode(arg) for arg in args)
+                + self._encode(len(args))
                 + b"\n"
+                + args
             )
             self._cond.notify_all()
 

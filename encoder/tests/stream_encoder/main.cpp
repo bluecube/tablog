@@ -139,12 +139,17 @@ void linear12adapt_predictor(BW& bitWriter, std::string_view args) {
 
 int main() {
     std::string lineStr;
+    std::string dataStr;
     while(std::getline(std::cin, lineStr)) {
         auto rest = std::string_view(lineStr);
 
         std::string output;
 
         const auto func = next_token(rest).value();
+        const auto length = parse_num<uint32_t>(next_token(rest).value());
+        dataStr.resize(length);
+        std::cin.read(&dataStr[0], length);
+        rest = std::string_view(dataStr);
 
         if (func == "byte_pattern")
             byte_pattern(output, rest);
