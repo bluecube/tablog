@@ -38,31 +38,40 @@ TEST_CASE("BitWriter") {
 
     SECTION("Flush 4 bits") {
         bw.write(0x9u, 4);
-        bw.flush();
+        bw.flush_last_byte();
         REQUIRE(bw.data == "\x09");
 
         SECTION("Double flush is no-op") {
-            bw.flush();
+            bw.flush_last_byte();
             REQUIRE(bw.data == "\x09");
         }
     }
 
     SECTION("End 4 bits") {
         bw.write(0x9u, 4);
-        bw.end();
+        bw.end_bit_stream();
         REQUIRE(bw.data == "\x19");
+    }
+
+    SECTION("End, followed by the same data") {
+        bw.write(0xdeadcafe, 27); // Just an arbitrary partial byte pattern
+        bw.end_bit_stream();
+        bw.write(0xdeadcafe, 27); // Just an arbitrary partial byte pattern
+        bw.end_bit_stream();
+        REQUIRE(bw.data.size() == 8);
+        REQUIRE(bw.data.substr(0, 4) == bw.data.substr(4, 4));
     }
 
     SECTION("Small write followed by large write followed by flush") {
         bw.write(0u, 1);
         bw.write(2474832583ull, 32);
-        bw.flush();
+        bw.flush_last_byte();
         REQUIRE(bw.data == "\x8e\xe5\x05\x27\x01");
     }
 
     SECTION("Upper bit masking") {
         bw.write(0xffu, 1);
-        bw.flush();
+        bw.flush_last_byte();
         REQUIRE(bw.data == "\x01");
     }
 
@@ -108,7 +117,7 @@ TEST_CASE("BitWriter") {
 
             for (uint32_t i = 0; i < patternLength; ++i)
                 bw.write_bit(i);
-            bw.flush();
+            bw.flush_last_byte();
 
             REQUIRE(bw.data == expected);
         }
@@ -130,7 +139,7 @@ TEST_CASE("BitWriter") {
                 if (writeLength % 2)
                     writeData = ~writeData; // Invert the writeData if it's odd length
             }
-            bw.flush();
+            bw.flush_last_byte();
 
             REQUIRE(bw.data == expected);
         }

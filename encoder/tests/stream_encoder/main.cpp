@@ -1,10 +1,10 @@
 #include "../common.hpp"
 
-#include "stream_encoder.hpp"
 #include "util/bit_writer.hpp"
 #include "stream_encoder_bits.hpp"
 #include "predictors.hpp"
 #include "framing.hpp"
+#include "string_compression.hpp"
 
 #include <iostream>
 #include <string>
@@ -80,9 +80,9 @@ void framing(std::string& output, std::string_view args) {
     tablog::detail::Framing f([&output](uint8_t c) mutable { output.push_back(c); });
     for (auto c: args) {
         if (c == '1')
-            f.start();
+            f.start_of_block();
         else if (c == '2')
-            f.end();
+            f.end_of_block();
         else
             f(c);
     }
@@ -151,6 +151,8 @@ int main() {
         std::cin.read(&dataStr[0], length);
         rest = std::string_view(dataStr);
 
+        std::cerr << "func: " << func << "\n";
+
         if (func == "byte_pattern")
             byte_pattern(output, rest);
         else if (func == "framing")
@@ -183,7 +185,7 @@ int main() {
                     throw std::runtime_error("Unknown func"); // GCOV_EXCL_LINE
             }
 
-            bitWriter.end();
+            bitWriter.end_bit_stream();
         }
 
         std::cout << output.size();

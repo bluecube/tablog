@@ -260,11 +260,11 @@ TEST_CASE("String compression smoke tests") {
     /// encoding is not completely off.
     SECTION("Empty string") {
         compress_string("", bwStr);
-        bwStr.flush();
+        bwStr.flush_last_byte();
 
         tablog::util::StringBitWriter bwExpected;
         bwExpected.write(0b11u, 2);
-        bwExpected.flush();
+        bwExpected.flush_last_byte();
 
         REQUIRE(bwStr.data == bwExpected.data);
     }

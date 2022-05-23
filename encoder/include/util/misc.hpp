@@ -62,6 +62,8 @@ constexpr T extrapolate(T first, T last) noexcept {
 
 /// Calculate floor(log2(v)) for values between 1 and 9 (inclusive).
 constexpr uint_fast8_t small_int_log2(uint_fast8_t v) {
+    assert(v >= 1);
+    assert(v <= 9);
     return (v >> 1) - (v > 5);
 }
 

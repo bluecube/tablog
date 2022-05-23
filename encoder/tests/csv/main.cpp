@@ -47,6 +47,7 @@ class CsvRowEncoderInterface
 public:
     virtual ~CsvRowEncoderInterface() {}
     virtual void encode(const std::vector<std::string_view>& row) = 0;
+    virtual void end_block() = 0;
 };
 
 template <typename... ValueTs>
@@ -65,10 +66,14 @@ public:
         encode(row, std::index_sequence_for<ValueTs...>{});
     }
 
+    void end_block() override {
+        t.end_block();
+    }
+
 protected:
     template <std::size_t... Indices>
     void encode(const std::vector<std::string_view>& row, std::index_sequence<Indices...>) {
-        t.write(parse_num<ValueTs>(row[Indices])...);
+        t.write_row(parse_num<ValueTs>(row[Indices])...);
     }
 
 
@@ -127,4 +132,6 @@ int main() {
         const auto row = tokenize_csv_line(rowStr);
         tablogInterface->encode(row);
     }
+
+    tablogInterface->end_block();
 }

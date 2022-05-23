@@ -46,13 +46,12 @@ public:
         }
     }
 
-    /// Output start mark.
-    void start() {
+    void start_of_block() {
         output_escaped(startByte);
     }
 
     /// Output end mark.
-    void end() {
+    void end_of_block() {
         output_escaped(endByte);
     }
 

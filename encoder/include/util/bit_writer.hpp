@@ -69,14 +69,14 @@ public:
 
     /// End the bit stream by writing a single 1 bit and then padding with
     /// zero bits to whole byte.
-    void end() {
+    void end_bit_stream() {
         this->write_bit(1);
-        this->flush();
+        this->flush_last_byte();
     }
 
     /// Pad the last unwritten byte with zeros and output it.
     /// This is only intended for testing
-    void flush() {
+    void flush_last_byte() {
         if (bufferUsed == 0)
             return;
 

@@ -93,7 +93,7 @@ protected:
 };
 
 template <typename BW>
-inline void encode_type(bool signedType, uint_fast8_t typeSize, BW& bitWriter) {
+inline void encode_int_type(bool signedType, uint_fast8_t typeSize, BW& bitWriter) {
     uint_fast8_t typeExponent = small_int_log2(typeSize);
     bitWriter.write_bit(signedType);
     bitWriter.write(typeExponent, 2);
@@ -101,7 +101,8 @@ inline void encode_type(bool signedType, uint_fast8_t typeSize, BW& bitWriter) {
 
 template <typename T, typename BW>
 inline void encode_type(BW& bitWriter) {
-    encode_type(std::is_signed_v<T>, sizeof(T), bitWriter);
+    static_assert(std::is_integral_v<T>);
+    encode_int_type(std::is_signed_v<T>, sizeof(T), bitWriter);
 }
 
 }
