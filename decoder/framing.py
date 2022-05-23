@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from . import exceptions
+
 from collections.abc import Iterable
 from typing import Union, Literal
 import itertools
@@ -126,7 +128,7 @@ class FramingBlockIterator:
             return UnexpectedEndOfData()
 
 
-class FramingError:
+class FramingError(exceptions.TablogError):
     def __str__(self):
         return "Unspecified framing error"
 

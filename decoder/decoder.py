@@ -4,6 +4,7 @@ from . import decoder_utils
 from . import bit_reader
 from . import framing
 from . import predictors
+from . import exceptions
 
 import collections.abc
 
@@ -24,7 +25,8 @@ class TablogDecoder:
         self._predictors = None
         self._error_decoders = None
 
-        self._next_block()
+        if not self._next_block():
+            raise exceptions.InputEmptyError("No data to decode");
 
     def _next_block(self):
         try:
@@ -35,7 +37,8 @@ class TablogDecoder:
         if isinstance(item, collections.abc.Iterator):
             self._bit_reader = bit_reader.BitReader(item)
         else:
-            raise Exception(str(item))
+            assert isinstance(item, framing.FramingError)
+            raise item
 
         old_field_names = self.field_names
         old_field_types = self.field_types
@@ -43,16 +46,16 @@ class TablogDecoder:
         self._read_header()
 
         if old_field_names is not None and old_field_names != self.field_names:
-            raise Exception("Field names have changed")
+            raise exceptions.TablogError("Field names have changed")
         if old_field_types is not None and old_field_types != self.field_types:
-            raise Exception("Field types have changed")
+            raise exceptions.TablogError("Field types have changed")
 
         return True
 
     def _read_header(self):
         version = decoder_utils.decode_elias_gamma(self._bit_reader)
         if version != self.supported_version:
-            raise ValueError(
+            raise exceptions.UnsupportedVersionError(
                 f"Input uses file format version {version}, we support {self.supported_version}"
             )
 
