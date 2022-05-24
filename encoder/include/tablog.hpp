@@ -5,6 +5,7 @@
 #include "util/bit_writer.hpp"
 #include "stream_encoder_bits.hpp"
 
+#include <array>
 #include <tuple>
 #include <cstdint>
 #include <utility>
@@ -56,12 +57,28 @@ public:
         columnCompressors.reset();
     }
 
+    void set_column_name(std::size_t i, std::string_view name) {
+        columnNames[i] = name;
+    }
+
+    template <typename... NameTs>
+    void set_column_names(NameTs... names) {
+        static_assert(
+            sizeof...(NameTs) == sizeof...(ValueTs),
+            "Number of names to set must be equal to the number of values encoded"
+        );
+
+        columnNames = {names...};
+    }
+
 private:
     void start_block() {
         columnCompressors.emplace();
         bitWriter.output.write_start_mark();
         detail::elias_gamma(outputFormatVersion, bitWriter);
         detail::elias_gamma(sizeof...(ValueTs) - 1u, bitWriter);
+        for (auto& columnName: columnNames)
+            string::compress_string(columnName, bitWriter);
         std::apply(
             [&](auto&... column) {
                 (column.write_header(bitWriter), ...);
@@ -71,6 +88,7 @@ private:
     }
 
     util::BitWriter<detail::Framing<OutputF>> bitWriter;
+    std::array<std::string_view, sizeof...(ValueTs)> columnNames;
     std::optional<std::tuple<detail::ColumnCompressor<ValueTs>...>> columnCompressors;
 };
 

@@ -24,8 +24,7 @@ def test_dataset_encode_decode(csv_encoder, dataset):
         encoded = csv_encoder(dataset)
         decoder = decoder_module.TablogDecoder(encoded)
 
-        # assert decoder.field_names == dataset.field_names
-        # Field names are not implemented yet
+        assert decoder.field_names == [name.encode("utf-8") for name in dataset.field_names]
         assert decoder.field_types == dataset.field_types
 
         for decoded_row, dataset_row in zip(decoder, dataset):

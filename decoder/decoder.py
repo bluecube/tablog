@@ -5,6 +5,7 @@ from . import bit_reader
 from . import framing
 from . import predictors
 from . import exceptions
+from . import string
 
 import collections.abc
 
@@ -66,7 +67,10 @@ class TablogDecoder:
         self._predictors = []
         self._error_decoders = []
         for i in range(field_count):
-            name = decoder_utils.decode_string(self._bit_reader)
+            name = string.decode_string(self._bit_reader)
+            self.field_names.append(name)
+
+        for i in range(field_count):
             value_type = decoder_utils.decode_type(self._bit_reader)
 
             predictor = predictors.Adapt(
@@ -74,7 +78,6 @@ class TablogDecoder:
             )
             error_decoder = decoder_utils.AdaptiveExpGolombDecoder(value_type.bitsize)
 
-            self.field_names.append(name)
             self.field_types.append(value_type)
             self._predictors.append(predictor)
             self._error_decoders.append(error_decoder)

@@ -56,7 +56,9 @@ public:
     template <typename... EncoderArgs>
     TablogCsvRowEncoder(StreamOutput output, const std::vector<std::string_view>& columnNames)
       : t(std::move(output)) {
-        (void)columnNames;
+
+        for (std::size_t i = 0; i < columnNames.size(); ++i)
+            t.set_column_name(i, columnNames[i]);
     }
 
     void encode(const std::vector<std::string_view>& row) override {
@@ -75,7 +77,6 @@ protected:
     void encode(const std::vector<std::string_view>& row, std::index_sequence<Indices...>) {
         t.write_row(parse_num<ValueTs>(row[Indices])...);
     }
-
 
     tablog::Tablog<StreamOutput, ValueTs...> t;
 };
@@ -120,6 +121,9 @@ int main() {
     std::string typesStr;
     std::getline(std::cin, typesStr);
     const auto types = tokenize_csv_line(typesStr);
+
+    if (columnLabels.size() != types.size())
+        throw std::runtime_error("Different number of column labels and column types"); // GCOV_EXCL_LINE
 
     const auto factoryIt = factories.find(types);
     if (factoryIt == factories.end())
