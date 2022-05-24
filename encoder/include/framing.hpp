@@ -7,8 +7,8 @@
 namespace tablog::detail {
 
 /// Wrapper for a byte output function that provides message framing.
-/// The encoded stream never contains neither start nor end marks unless explicitly
-/// written.
+/// The encoded stream contains neither start nor end marks unless explicitly
+/// written using write_start_mark() or write_end_mark().
 /// Each mark is encoded as 2 bytes, expands non-mark data by
 /// 3/2**16 = ~4.5e-3% on average and by 50% worst case (Input matching /(T[l# ])*/).
 template <typename OutputF>
@@ -46,12 +46,11 @@ public:
         }
     }
 
-    void start_of_block() {
+    void write_start_mark() {
         output_escaped(startByte);
     }
 
-    /// Output end mark.
-    void end_of_block() {
+    void write_end_mark() {
         output_escaped(endByte);
     }
 

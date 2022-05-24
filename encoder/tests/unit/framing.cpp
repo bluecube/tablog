@@ -16,12 +16,12 @@ TEST_CASE("Framing") {
     }
 
     SECTION("Only start") {
-        f.start_of_block();
+        f.write_start_mark();
         REQUIRE(data == "Tl");
     }
 
     SECTION("Only end") {
-        f.end_of_block();
+        f.write_end_mark();
         REQUIRE(data == "T#");
     }
 

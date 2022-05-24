@@ -52,7 +52,7 @@ public:
         if (!columnCompressors.has_value())
             start_block();
         bitWriter.end_bit_stream();
-        bitWriter.output.end_of_block();
+        bitWriter.output.write_end_mark();
         columnCompressors.reset();
     }
 
@@ -61,7 +61,7 @@ private:
         std::cerr << "starting block\n";
         columnCompressors.emplace();
         std::cerr << "emplaced\n";
-        bitWriter.output.start_of_block();
+        bitWriter.output.write_start_mark();
         detail::elias_gamma(outputFormatVersion, bitWriter);
         detail::elias_gamma(sizeof...(ValueTs) - 1u, bitWriter);
         std::apply(

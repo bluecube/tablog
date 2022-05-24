@@ -80,9 +80,9 @@ void framing(std::string& output, std::string_view args) {
     tablog::detail::Framing f([&output](uint8_t c) mutable { output.push_back(c); });
     for (auto c: args) {
         if (c == '1')
-            f.start_of_block();
+            f.write_start_mark();
         else if (c == '2')
-            f.end_of_block();
+            f.write_end_mark();
         else
             f(c);
     }
