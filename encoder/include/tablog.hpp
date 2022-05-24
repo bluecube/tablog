@@ -58,20 +58,16 @@ public:
 
 private:
     void start_block() {
-        std::cerr << "starting block\n";
         columnCompressors.emplace();
-        std::cerr << "emplaced\n";
         bitWriter.output.write_start_mark();
         detail::elias_gamma(outputFormatVersion, bitWriter);
         detail::elias_gamma(sizeof...(ValueTs) - 1u, bitWriter);
         std::apply(
             [&](auto&... column) {
-                std::cerr << "Writing columns (" << sizeof...(column) << ")\n";
                 (column.write_header(bitWriter), ...);
             },
             *columnCompressors
         );
-        std::cerr << "block ready\n";
     }
 
     util::BitWriter<detail::Framing<OutputF>> bitWriter;

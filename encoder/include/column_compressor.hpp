@@ -6,7 +6,6 @@
 #include "string_compression.hpp"
 
 #include <cstdint>
-#include <iostream>
 
 namespace tablog::detail {
 
@@ -35,7 +34,6 @@ public:
 
     template <typename BitWriter>
     void write_header(BitWriter& bw) {
-        std::cerr << "Encoding type: signed: " << std::is_signed_v<ValueT> << " sizeof: " << sizeof(ValueT) << "\n";
         encode_int_type(std::is_signed_v<ValueT>, sizeof(ValueT), bw);
     }
 
