@@ -44,6 +44,10 @@ def csv_size(dataset):
 def gzip_compressed_size(dataset):
     measurement = MeasurementOnlyFile()
     with gzip.open(measurement, "w", compresslevel=9) as gz:
+        for field in dataset.field_names:
+            gz.write(field.encode("utf-8"))
+            gz.write(b"\0")
+
         for row in dataset:
             for v, t, in zip(row, dataset.field_types):
                 gz.write(v.to_bytes(length=t.bytesize(), byteorder="big", signed=t.signed))
@@ -55,6 +59,10 @@ def gzip_delta_compressed_size(dataset):
     measurement = MeasurementOnlyFile()
     it = iter(dataset)
     with gzip.open(measurement, "w") as gz:
+        for field in dataset.field_names:
+            gz.write(field.encode("utf-8"))
+            gz.write(b"\0")
+
         try:
             first_row = next(it)
         except StopIteration:
