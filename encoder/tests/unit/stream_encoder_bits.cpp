@@ -1,7 +1,8 @@
-#include <catch2/catch.hpp>
-
 #include "stream_encoder_bits.hpp"
 #include "util/bit_writer.hpp"
+
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators_all.hpp>
 
 TEST_CASE("Adaptive exp-golomb encoding") {
     tablog::detail::AdaptiveExpGolombEncoder<uint64_t> encoder;
@@ -10,11 +11,11 @@ TEST_CASE("Adaptive exp-golomb encoding") {
     tablog::util::BitWriter bw([&data](uint8_t c) { data.push_back(c); });
 
     SECTION("Can encode value without throwing") {
-        const auto values = GENERATE(Catch::Generators::take(
+        const auto values = GENERATE(take(
             100,
-            Catch::Generators::chunk(
+            chunk(
                 1000,
-                Catch::Generators::random(1u, 20000u)
+                random(1u, 20000u)
             )
         ));
 
