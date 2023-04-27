@@ -39,6 +39,10 @@ public:
         return used == 0;
     }
 
+    bool full() const noexcept {
+        return used >= N;
+    }
+
     /// Number of items currently held in the buffer
     IndexT size() const noexcept {
         return used;

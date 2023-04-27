@@ -8,15 +8,16 @@ TEST_CASE("CircularBuffer") {
 
     REQUIRE(c.size() == 0);
     REQUIRE(c.empty());
+    REQUIRE(!c.full());
     REQUIRE(c.capacity() == n);
 
-    SECTION("with elements") {
+    SECTION("full of elements") {
         for (unsigned i = 0; i < n; ++i) {
             c.push_back(i);
             REQUIRE(c.size() == i + 1);
         }
-
         REQUIRE(!c.empty());
+        REQUIRE(c.full());
 
         SECTION("element_access") {
             for (unsigned i = 0; i < n; ++i)
@@ -29,7 +30,9 @@ TEST_CASE("CircularBuffer") {
             for (unsigned i = 0; i < n; ++i) {
                 REQUIRE(c.pop_front() == i);
                 REQUIRE(c.size() == n - i - 1);
+                REQUIRE(!c.full());
             }
+            REQUIRE(c.empty());
         }
 
         SECTION("overflow") {
