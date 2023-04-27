@@ -1,6 +1,9 @@
 #include "util/misc.hpp"
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/generators/catch_generators_all.hpp>
+#include <catch2/catch_approx.hpp>
 
 #include <limits>
 #include <cmath>
@@ -53,7 +56,7 @@ TEST_CASE("abs_diff double") {
 
     static_assert(std::is_same_v<decltype(ret.first), double>, "Returning double");
 
-    REQUIRE(ret.first == Approx(expected.first));
+    REQUIRE(ret.first == Catch::Approx(expected.first));
     REQUIRE(ret.second == expected.second);
 }
 
@@ -106,11 +109,11 @@ TEMPLATE_TEST_CASE("int_log2", "",
     auto v = GENERATE(
         Catch::Generators::take(
             500,
-            Catch::Generators::random<TestType>(
+            Catch::Generators::random<uint64_t>(
                 1ul,
                 std::numeric_limits<TestType>::max()
             )
         )
     );
-    REQUIRE(tablog::detail::int_log2(v) == floor(log2(v)));
+    REQUIRE(tablog::detail::int_log2(static_cast<TestType>(v)) == floor(log2(v)));
 }

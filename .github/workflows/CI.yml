@@ -23,17 +23,20 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        sudo apt-get install -yq scons
+        sudo apt-get install -yq scons cmake
     - name: Checkout Catch2 for encoder tests
       uses: actions/checkout@v2
       with:
         repository: catchorg/Catch2
-        ref: v2.13.8
+        ref: v3.3.2
         path: catch2
+    - name: Build and install catch2
+      run: mkdir build ; cd build ; cmake .. ; cmake --build . ; sudo cmake --install .
+      working-directory: catch2
 
 
     - name: Build encoder tests
-      run: scons use_compilation_db=0 coverage=1 CCFLAGS=-I$GITHUB_WORKSPACE/catch2/single_include
+      run: scons use_compilation_db=0 coverage=1
       working-directory: encoder
 
 

@@ -1,3 +1,5 @@
 Import("test_env")
 
-test_env.Program("unit_tests", Glob("**.cpp"))
+env = test_env.Clone()
+env.ParseConfig("pkg-config catch2-with-main --cflags --libs")
+env.Program("unit_tests", Glob("**.cpp"))

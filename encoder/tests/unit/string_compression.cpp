@@ -1,5 +1,3 @@
-#include <catch2/catch.hpp>
-
 #include "string_compression.hpp"
 #include "util/string_bit_writer.hpp"
 
@@ -7,13 +5,15 @@
 #include <iostream>
 #include <random>
 
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators_all.hpp>
 
 using namespace tablog::string;
 using namespace tablog::string::detail;
 
 // Some assumptions to make the tests doable
-constexpr auto minChar = std::numeric_limits<char>::min();
-constexpr auto maxChar = std::numeric_limits<char>::max();
+constexpr int minChar = std::numeric_limits<char>::min();
+constexpr int maxChar = std::numeric_limits<char>::max();
 static_assert(trie::firstLevelMin > minChar);
 static_assert(trie::firstLevelMax < maxChar);
 
@@ -86,15 +86,15 @@ TEST_CASE("String compression: Flattened trie incoming edges") {
 
 TEST_CASE("String compression: First character false") {
     const auto c = GENERATE(
-        static_cast<char>(trie::firstLevelMin - 1),
-        static_cast<char>(trie::firstLevelMax + 1),
-        Catch::Generators::take(
+        trie::firstLevelMin - 1,
+        trie::firstLevelMax + 1,
+        take(
             10,
-            Catch::Generators::random(minChar, static_cast<char>(trie::firstLevelMin - 1))
+            random(minChar, trie::firstLevelMin - 1)
         ),
-        Catch::Generators::take(
+        take(
             10,
-            Catch::Generators::random(static_cast<char>(trie::firstLevelMax + 1), maxChar)
+            random(trie::firstLevelMax + 1, maxChar)
         ),
         trie::test_data::missingShort
     );
@@ -104,9 +104,9 @@ TEST_CASE("String compression: First character false") {
 
 TEST_CASE("String compression: First character true") {
     const auto c = GENERATE(
-        trie::firstLevelMin,
-        trie::firstLevelMax,
-        trie::test_data::example[0]
+        static_cast<int>(trie::firstLevelMin),
+        static_cast<int>(trie::firstLevelMax),
+        static_cast<int>(trie::test_data::example[0])
     );
 
     const auto ret = trie::lookup_first_char(c);
@@ -179,27 +179,28 @@ TEST_CASE("String compression: Next character false") {
 
 TEST_CASE("String compression: Lookup symbol bad first char") {
     const auto c = GENERATE(
-        static_cast<char>(trie::firstLevelMin - 1),
-        static_cast<char>(trie::firstLevelMax + 1),
-        Catch::Generators::take(
+        trie::firstLevelMin - 1,
+        trie::firstLevelMax + 1,
+        take(
             10,
-            Catch::Generators::random(minChar, static_cast<char>(trie::firstLevelMin - 1))
+            random(minChar, trie::firstLevelMin - 1)
         ),
-        Catch::Generators::take(
+        take(
             10,
-            Catch::Generators::random(static_cast<char>(trie::firstLevelMax + 1), maxChar)
+            random(trie::firstLevelMax + 1, maxChar)
         ),
-        Catch::Generators::take(
+        take(
             10,
-            Catch::Generators::filter(
-                [](char c) { return trie::lookup_first_char(c) == nullptr; },
-                Catch::Generators::random(detail::trie::firstLevelMin, detail::trie::firstLevelMax)
+            filter(
+                [](int c) { return trie::lookup_first_char(c) == nullptr; },
+                random<int>(detail::trie::firstLevelMin, detail::trie::firstLevelMax)
             )
         ),
         trie::test_data::missingShort
     );
 
-    std::string_view sv(&c, 1);
+    char c2 = c;
+    std::string_view sv(&c2, 1);
 
     const auto result = trie::lookup_symbol(sv);
     REQUIRE(result.first == nullptr);
@@ -208,10 +209,10 @@ TEST_CASE("String compression: Lookup symbol bad first char") {
 
 TEST_CASE("String compression: Lookup symbol match") {
     auto [matchingString, node] = GENERATE(
-        Catch::Generators::take(
+        take(
             50,
             Catch::Generators::GeneratorWrapper<std::pair<std::string, const trie::Node*>>(
-                std::make_unique<TrieStringGenerator>()
+                new TrieStringGenerator()
             )
         )
     );
@@ -224,13 +225,13 @@ TEST_CASE("String compression: Lookup symbol match") {
 
     SECTION("Followed by more data") {
         char following = GENERATE(
-            Catch::Generators::values<char>({
+            values<int>({
                 trie::test_data::example[0],
                 trie::test_data::missingShort
             }),
-            Catch::Generators::take(
+            take(
                 20,
-                Catch::Generators::random('\0', '\xff')
+                Catch::Generators::random<int>('\0', '\xff')
             )
         );
 

@@ -16,7 +16,7 @@ public:
     /// Push an item to the buffer, removes the oldest one if buffer is full
     void push_back(const T& v) noexcept {
         if (used < N) {
-            a[used++] = v;
+            a[index(used++)] = v;
         }
         else
         {
@@ -37,6 +37,10 @@ public:
 
     bool empty() const noexcept {
         return used == 0;
+    }
+
+    bool full() const noexcept {
+        return used >= N;
     }
 
     /// Number of items currently held in the buffer
