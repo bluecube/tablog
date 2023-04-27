@@ -65,6 +65,18 @@ TEST_CASE("CircularBuffer") {
         REQUIRE(c.front() == 42);
         REQUIRE(c.back() == 42);
     }
+
+    SECTION("chasing single element") {
+        c.push_back(0);
+        for (unsigned i = 0; i < 10; ++i) {
+            REQUIRE(c.size() == 1);
+            REQUIRE(c.front() == i);
+            REQUIRE(c.pop_front() == i);
+            REQUIRE(c.empty());
+            c.push_back(i + 1);
+            REQUIRE(c.size() == 1);
+        }
+    }
 }
 
 TEST_CASE("CircularBufferFixed") {
