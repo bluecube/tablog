@@ -58,6 +58,11 @@ TEST_CASE("CircularBuffer") {
                 REQUIRE(c.size() == n);
             }
         }
+
+        SECTION("clear") {
+            c.clear();
+            REQUIRE(c.empty());
+        }
     }
 
     SECTION("single element front and back are the same") {

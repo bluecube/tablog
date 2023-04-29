@@ -35,6 +35,10 @@ public:
         return a[idx];
     }
 
+    void clear() noexcept {
+        used = 0;
+    }
+
     bool empty() const noexcept {
         return used == 0;
     }
